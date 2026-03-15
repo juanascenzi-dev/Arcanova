@@ -1,0 +1,9 @@
+packages:
+  "framer-motion": "For premium scroll animations and page transitions"
+  "clsx": "Utility for constructing className strings conditionally"
+  "tailwind-merge": "Utility for merging tailwind classes safely"
+
+images:
+  - path: "artifacts/riviera-cancun/public/images/logo-mark.png"
+    description: "Minimal elegant geometric logo mark for a luxury travel brand featuring a stylized gold compass star or diamond on a transparent background"
+    aspect_ratio: "1:1"
