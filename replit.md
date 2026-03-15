@@ -21,76 +21,78 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 ```text
 artifacts-monorepo/
 ├── artifacts/              # Deployable applications
-│   └── api-server/         # Express API server
+│   ├── api-server/         # Express API server
+│   └── riviera-cancun/     # AUSTRAL Cancún Premium website (React + Vite)
 ├── lib/                    # Shared libraries
 │   ├── api-spec/           # OpenAPI spec + Orval codegen config
 │   ├── api-client-react/   # Generated React Query hooks
 │   ├── api-zod/            # Generated Zod schemas from OpenAPI
 │   └── db/                 # Drizzle ORM schema + DB connection
 ├── scripts/                # Utility scripts (single workspace package)
-│   └── src/                # Individual .ts scripts, run via `pnpm --filter @workspace/scripts run <script>`
-├── pnpm-workspace.yaml     # pnpm workspace (artifacts/*, lib/*, lib/integrations/*, scripts)
-├── tsconfig.base.json      # Shared TS options (composite, bundler resolution, es2022)
+├── pnpm-workspace.yaml     # pnpm workspace
+├── tsconfig.base.json      # Shared TS options
 ├── tsconfig.json           # Root TS project references
 └── package.json            # Root package with hoisted devDeps
 ```
 
-## TypeScript & Composite Projects
+## AUSTRAL Cancún Premium Website (`artifacts/riviera-cancun`)
 
-Every package extends `tsconfig.base.json` which sets `composite: true`. The root `tsconfig.json` lists all packages as project references. This means:
+A luxury tourism landing page for AUSTRAL Cancún Premium — a premium tour operator in Cancún & Riviera Maya, Mexico. Argentine-owned (subtle nod in the footer).
 
-- **Always typecheck from the root** — run `pnpm run typecheck` (which runs `tsc --build --emitDeclarationOnly`). This builds the full dependency graph so that cross-package imports resolve correctly. Running `tsc` inside a single package will fail if its dependencies haven't been built yet.
-- **`emitDeclarationOnly`** — we only emit `.d.ts` files during typecheck; actual JS bundling is handled by esbuild/tsx/vite...etc, not `tsc`.
-- **Project references** — when package A depends on package B, A's `tsconfig.json` must list B in its `references` array. `tsc --build` uses this to determine build order and skip up-to-date packages.
+### Features
+- **Fully bilingual (ES/EN)** — React Context i18n system, browser language auto-detection, localStorage persistence
+- **Hero carousel** — 6 Unsplash images rotating every 10s with 1.5s crossfade transition
+- **Ship wheel (timón) SVG logo** — custom inline SVG, reusable `<Logo />` component with size/color props
+- **Slowly rotating ship wheel watermark** in the hero background (60s CSS animation, 8% opacity)
+- **6 experience cards** with real Unsplash images, category filter tabs, and detail modals
+- **Image error fallback** — `onError` handler shows gradient + emoji if Unsplash fails
+- **Scroll-to-top button** — appears after 400px scroll, themed with wave/arrow SVG, gold color
+- **WhatsApp floating button** — always visible, links to wa.me/529981234567
+- **Scroll-triggered fade-in animations** via Framer Motion
+- **Mobile-first responsive** — hamburger nav, single-column cards on mobile
+- **SEO** — meta title/description/OG tags in index.html
 
-## Root Scripts
+### Key Files
+- `src/contexts/i18n.tsx` — Complete ES/EN translation system with React Context
+- `src/data/experiences.ts` — Experience cards data (price, images, categories)
+- `src/components/Logo.tsx` — Reusable ship wheel SVG component
+- `src/components/Hero.tsx` — Carousel hero with watermark
+- `src/components/Experiences.tsx` — Filterable grid with modal
+- `src/components/WhatsAppButton.tsx` — Floating WhatsApp CTA
+- `src/components/ScrollToTopButton.tsx` — Scroll-to-top with wave icon
 
-- `pnpm run build` — runs `typecheck` first, then recursively runs `build` in all packages that define it
-- `pnpm run typecheck` — runs `tsc --build --emitDeclarationOnly` using project references
+### Color Palette
+| Name       | Hex       | Usage                                  |
+|------------|-----------|----------------------------------------|
+| Gold       | #C9A84C   | CTAs, accents, logo, scroll-top btn   |
+| Deep Blue  | #0A1628   | Navbar, footer, dark backgrounds       |
+| Ocean      | #0E4D64   | Gradients, secondary backgrounds       |
+| Sand       | #F5ECD7   | Light section backgrounds              |
+| White      | #FAFAF7   | Main background                        |
+| Coral      | #E07A5F   | Extreme tags, secondary accents        |
+
+### Typography
+- **Display / Headings**: Playfair Display (serif, italic for gold emphasis)
+- **Body / UI**: DM Sans (sans-serif)
 
 ## Packages
 
 ### `artifacts/api-server` (`@workspace/api-server`)
 
-Express 5 API server. Routes live in `src/routes/` and use `@workspace/api-zod` for request and response validation and `@workspace/db` for persistence.
-
-- Entry: `src/index.ts` — reads `PORT`, starts Express
-- App setup: `src/app.ts` — mounts CORS, JSON/urlencoded parsing, routes at `/api`
-- Routes: `src/routes/index.ts` mounts sub-routers; `src/routes/health.ts` exposes `GET /health` (full path: `/api/health`)
-- Depends on: `@workspace/db`, `@workspace/api-zod`
-- `pnpm --filter @workspace/api-server run dev` — run the dev server
-- `pnpm --filter @workspace/api-server run build` — production esbuild bundle (`dist/index.cjs`)
-- Build bundles an allowlist of deps (express, cors, pg, drizzle-orm, zod, etc.) and externalizes the rest
+Express 5 API server. Routes live in `src/routes/`.
 
 ### `lib/db` (`@workspace/db`)
 
-Database layer using Drizzle ORM with PostgreSQL. Exports a Drizzle client instance and schema models.
-
-- `src/index.ts` — creates a `Pool` + Drizzle instance, exports schema
-- `src/schema/index.ts` — barrel re-export of all models
-- `src/schema/<modelname>.ts` — table definitions with `drizzle-zod` insert schemas (no models definitions exist right now)
-- `drizzle.config.ts` — Drizzle Kit config (requires `DATABASE_URL`, automatically provided by Replit)
-- Exports: `.` (pool, db, schema), `./schema` (schema only)
-
-Production migrations are handled by Replit when publishing. In development, we just use `pnpm --filter @workspace/db run push`, and we fallback to `pnpm --filter @workspace/db run push-force`.
+Database layer using Drizzle ORM with PostgreSQL.
 
 ### `lib/api-spec` (`@workspace/api-spec`)
 
-Owns the OpenAPI 3.1 spec (`openapi.yaml`) and the Orval config (`orval.config.ts`). Running codegen produces output into two sibling packages:
-
-1. `lib/api-client-react/src/generated/` — React Query hooks + fetch client
-2. `lib/api-zod/src/generated/` — Zod schemas
-
-Run codegen: `pnpm --filter @workspace/api-spec run codegen`
+OpenAPI 3.1 spec and Orval codegen config.
 
 ### `lib/api-zod` (`@workspace/api-zod`)
 
-Generated Zod schemas from the OpenAPI spec (e.g. `HealthCheckResponse`). Used by `api-server` for response validation.
+Generated Zod schemas from the OpenAPI spec.
 
 ### `lib/api-client-react` (`@workspace/api-client-react`)
 
-Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHealthCheck`, `healthCheck`).
-
-### `scripts` (`@workspace/scripts`)
-
-Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.
+Generated React Query hooks and fetch client.

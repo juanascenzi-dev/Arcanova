@@ -26,7 +26,7 @@ export const experiencesData: ExperienceData[] = [
     durationHours: "3-4",
     category: ['adventure'],
     tagType: 'adventure',
-    imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&q=80",
+    imageUrl: "https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=800&q=80",
     fallbackEmoji: "🏍️"
   },
   {
@@ -35,7 +35,7 @@ export const experiencesData: ExperienceData[] = [
     durationHours: "1-2",
     category: ['adventure'],
     tagType: 'extreme',
-    imageUrl: "https://images.unsplash.com/photo-1541480601022-2308c0f02487?w=800&q=80",
+    imageUrl: "https://images.unsplash.com/photo-1521150932951-303a95503ed3?w=800&q=80",
     fallbackEmoji: "🪂"
   },
   {
@@ -53,7 +53,7 @@ export const experiencesData: ExperienceData[] = [
     durationHours: "1-2",
     category: ['relax'],
     tagType: 'comfort',
-    imageUrl: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&q=80",
+    imageUrl: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80",
     fallbackEmoji: "🚙"
   },
   {

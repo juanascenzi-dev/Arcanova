@@ -1,0 +1,510 @@
+# PROMPT PARA REPLIT — AUSTRAL · Cancún Premium Tourism Website (V3)
+
+## CONTEXTO DEL PROYECTO
+
+Necesito una landing page / sitio web completo para **AUSTRAL Cancún Premium**, un servicio de turismo premium en Cancún y la Riviera Maya, México. El nombre "Austral" es un guiño a nuestro origen argentino — sutil pero reconocible para los nuestros. Vendemos excursiones exclusivas (yates privados, cuatriciclos en la selva, bungee jumping, visitas VIP a Chichén Itzá), traslados de lujo, y armamos viajes completos personalizados para nuestros clientes. Nos diferenciamos porque siempre tenemos planes alternativos para días de lluvia (spa maya, cata de tequilas, cenotes techados, clases de cocina). El servicio es premium y se ofrece a turistas de todo el mundo.
+
+---
+
+## REQUERIMIENTOS TÉCNICOS
+
+- **Framework**: React + Vite (o Next.js si preferís SSR/SEO)
+- **Styling**: Tailwind CSS o CSS Modules — diseño luxury, NO genérico
+- **Idiomas**: El sitio DEBE ser bilingüe **Español / Inglés** con un toggle de idioma visible en el navbar. El idioma por defecto debería detectarse del navegador del usuario (si es "es" → español, sino → inglés). El usuario puede cambiar manualmente en cualquier momento y la preferencia debe persistir (localStorage).
+- **Responsive**: Mobile-first, debe verse perfecto en celulares, tablets y desktop
+- **Animaciones**: Scroll-triggered fade-ins, hover effects en cards, transiciones suaves
+- **Despliegue**: Listo para deploy en Replit / Vercel / Netlify
+
+---
+
+## ⚠️ IMÁGENES — MUY IMPORTANTE (LEER CON ATENCIÓN)
+
+Las imágenes son CRÍTICAS y han sido un problema recurrente. Seguir estas reglas estrictamente:
+
+### Reglas inquebrantables:
+1. **NUNCA** usar rutas locales que no existan (`/images/atv.jpg`, `./assets/bungee.png`)
+2. **NUNCA** usar el alt-text como src — eso genera imágenes rotas
+3. **NUNCA** usar íconos clipart, emojis, o imágenes de stock genéricas (relojes, vans cartoon, etc.) como reemplazo de fotos reales
+4. **SIEMPRE** usar URLs completas de Unsplash que funcionen realmente
+5. **SIEMPRE** usar `object-fit: cover` y un aspect ratio consistente en las cards
+6. **SIEMPRE** testear que CADA imagen carga antes de entregar
+
+### URLs de Unsplash VERIFICADAS para cada excursión:
+
+**Yate Privado (FUNCIONA BIEN — mantener esta):**
+```
+https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=800&q=80
+```
+
+**ATV / Cuatriciclos en la Selva (REEMPLAZAR — la anterior estaba rota):**
+Usar una imagen de quad/ATV en naturaleza o selva tropical:
+```
+https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?w=800&q=80
+```
+Alternativa (sendero en jungla tropical):
+```
+https://images.unsplash.com/photo-1440342359743-84fcb8c21f21?w=800&q=80
+```
+
+**Bungee Jumping Extremo (REEMPLAZAR — salió un reloj despertador!!):**
+Usar una imagen de aventura extrema, salto, paracaídas o persona en caída libre:
+```
+https://images.unsplash.com/photo-1521150932951-303a95503ed3?w=800&q=80
+```
+Alternativa (persona haciendo paracaidismo/skydiving sobre agua):
+```
+https://images.unsplash.com/photo-1474623809196-26c1d33457cc?w=800&q=80
+```
+
+**Chichén Itzá VIP (FUNCIONA BIEN — mantener):**
+```
+https://images.unsplash.com/photo-1518638150340-f706e86654de?w=800&q=80
+```
+
+**Traslados VIP (REEMPLAZAR — salió una van cartoon):**
+Usar una imagen de interior de vehículo de lujo o SUV premium:
+```
+https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&q=80
+```
+Alternativa (SUV de lujo negro):
+```
+https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80
+```
+
+**Plan Lluvia / Spa (FUNCIONA BIEN — mantener):**
+```
+https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&q=80
+```
+
+### Manejo de errores de imagen:
+Implementar `onError` handler en CADA `<img>`:
+```jsx
+<img 
+  src={imageUrl} 
+  alt="Descripción"
+  style={{ objectFit: 'cover', width: '100%', height: '240px' }}
+  loading="lazy"
+  onError={(e) => {
+    e.target.style.display = 'none';
+    e.target.parentElement.style.background = 'linear-gradient(135deg, #0A1628, #0E4D64)';
+    e.target.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:48px">⛵</div>';
+  }}
+/>
+```
+
+---
+
+## HERO CON CARRUSEL DE IMÁGENES (NUEVO — IMPORTANTE)
+
+El hero NO debe tener una sola imagen estática. Debe tener un **carrusel automático de imágenes de fondo** con transición fade suave.
+
+### Comportamiento:
+- **5-6 imágenes** de fondo que rotan automáticamente
+- Cada imagen se muestra durante **10 segundos**
+- Transición entre imágenes: **crossfade suave de 1.5 segundos** (una se desvanece mientras la otra aparece)
+- Las imágenes deben tener un **overlay oscuro semitransparente** (rgba(10,22,40,0.55)) encima para que el texto sea legible
+- El carrusel funciona en loop infinito
+- NO mostrar dots/indicators ni flechas — es automático y sutil
+- El texto del hero (título, subtítulo, CTAs, stats) se mantiene estático encima — solo cambia el fondo
+
+### Imágenes del carrusel hero (en este orden):
+
+```
+1. Playa paradisíaca con agua turquesa (Cancún vibes):
+   https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=1600&q=80
+
+2. Atardecer dorado sobre el mar caribe:
+   https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600&q=80
+
+3. Yate navegando en aguas cristalinas:
+   https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=1600&q=80
+
+4. Cenote con agua azul turquesa (místico):
+   https://images.unsplash.com/photo-1547483238-2cbf881a559f?w=1600&q=80
+
+5. Chichén Itzá al atardecer (cultural):
+   https://images.unsplash.com/photo-1518638150340-f706e86654de?w=1600&q=80
+
+6. Palmeras y playa relajada (chill vibes):
+   https://images.unsplash.com/photo-1468413253725-0d5181091126?w=1600&q=80
+```
+
+### Implementación técnica sugerida:
+```jsx
+// Stack de imágenes absolutas con z-index y opacity transition
+const [currentSlide, setCurrentSlide] = useState(0);
+
+useEffect(() => {
+  const interval = setInterval(() => {
+    setCurrentSlide(prev => (prev + 1) % heroImages.length);
+  }, 10000); // 10 segundos
+  return () => clearInterval(interval);
+}, []);
+
+// Cada imagen:
+{heroImages.map((img, i) => (
+  <div key={i} style={{
+    position: 'absolute', inset: 0,
+    backgroundImage: `url(${img})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    opacity: currentSlide === i ? 1 : 0,
+    transition: 'opacity 1.5s ease-in-out',
+  }} />
+))}
+// Overlay oscuro encima
+<div style={{ position: 'absolute', inset: 0, background: 'rgba(10,22,40,0.55)' }} />
+```
+
+### IMPORTANTE para performance:
+- Precargar la primera imagen (`<link rel="preload">` o eager loading)
+- Las demás cargar lazy
+- Usar `w=1600&q=80` para las hero (resolución grande) vs `w=800&q=80` para cards
+
+---
+
+## BOTONES FLOTANTES (NUEVO — 2 BOTONES)
+
+En la esquina inferior derecha, **DOS botones flotantes** apilados verticalmente:
+
+### 1. Botón "Subir arriba" (arriba del de WhatsApp)
+- **Ícono**: Una ola estilizada con flecha hacia arriba (🌊 con ↑) o simplemente una ola SVG apuntando hacia arriba — temática playera
+- **Diseño**: Círculo de 48px, fondo arena/dorado suave (#C9A84C con 90% opacidad), ícono blanco
+- **Comportamiento**: 
+  - Aparece SOLO cuando el usuario scrolleó más de 400px hacia abajo (oculto al inicio)
+  - Aparición con fade-in + slide-up suave
+  - Al hacer click: smooth scroll al top de la página
+- **Hover**: Escala a 1.1 + sombra más intensa
+- **Posición**: `bottom: 96px; right: 24px;` (arriba del botón de WhatsApp)
+
+### 2. Botón WhatsApp (se mantiene abajo)
+- **Ícono**: Logo de WhatsApp (SVG) o emoji 💬
+- **Diseño**: Círculo de 56px, fondo verde WhatsApp (#25D366)
+- **Link**: `https://wa.me/529981234567`
+- **Posición**: `bottom: 24px; right: 24px;`
+- **Hover**: Escala a 1.05 + sombra verde
+
+### Implementación sugerida del botón scroll-to-top:
+```jsx
+const [showScrollTop, setShowScrollTop] = useState(false);
+
+useEffect(() => {
+  const handleScroll = () => setShowScrollTop(window.scrollY > 400);
+  window.addEventListener('scroll', handleScroll);
+  return () => window.removeEventListener('scroll', handleScroll);
+}, []);
+
+// SVG de ola con flecha (temática playa):
+<button
+  onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+  style={{
+    position: 'fixed', bottom: 96, right: 24,
+    width: 48, height: 48, borderRadius: '50%',
+    background: '#C9A84C', border: 'none', cursor: 'pointer',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    boxShadow: '0 4px 15px rgba(201,168,76,0.3)',
+    opacity: showScrollTop ? 1 : 0,
+    transform: showScrollTop ? 'translateY(0)' : 'translateY(20px)',
+    transition: 'all 0.3s ease',
+    pointerEvents: showScrollTop ? 'auto' : 'none',
+    zIndex: 800,
+  }}
+>
+  {/* Flecha arriba con ola */}
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round">
+    <path d="M12 19V5M5 12l7-7 7 7" />
+    <path d="M3 21c3-2 6 0 9-2s6 0 9-2" strokeWidth="2" opacity="0.6" />
+  </svg>
+</button>
+```
+
+---
+
+## LOGOTIPO — TIMÓN DE BARCO PREMIUM
+
+El logo de AUSTRAL es un **timón antiguo de barco de madera** (ship's wheel / helm) estilizado, con estética premium. Debe ser un **SVG inline** para que se vea nítido en cualquier tamaño.
+
+### Especificaciones del logo:
+- **Forma**: Timón de barco clásico (rueda con 8 manijas/radios y círculo central)
+- **Estilo**: Líneas limpias, elegante, minimalista pero reconocible — NO cartoon, NO realista en exceso
+- **Color**: Dorado (#C9A84C) sobre fondos oscuros, azul oscuro (#0A1628) sobre fondos claros
+- **Tamaño en navbar**: ~36-40px de alto
+- **Composición en navbar**: [Ícono timón] + texto "AUSTRAL" en Playfair Display bold + subtítulo "Cancún Premium" en DM Sans pequeño debajo
+
+### Referencia de estructura del SVG del timón:
+```
+- Círculo exterior (la rueda)
+- 8 radios/manijas que salen del centro (como los handles del timón)
+- Círculo interior pequeño (el hub central)
+- Las manijas terminan en pequeñas esferas o puntas redondeadas
+- Líneas de trazo (stroke), no relleno sólido, para un look elegante y abierto
+```
+
+El SVG debe verse bien tanto a 36px (navbar) como a 120px (footer o hero). Crear el logo como componente reutilizable `<HelmLogo />` que acepte props de `size` y `color`.
+
+---
+
+## NOMBRE Y BRANDING
+
+- **Nombre principal**: AUSTRAL
+- **Subtítulo**: Cancún Premium
+- **Tagline ES**: "Del sur al paraíso — tu aventura premium"
+- **Tagline EN**: "From the south to paradise — your premium adventure"
+- **Tono**: Cálido pero profesional, exclusivo pero accesible, aventurero pero seguro
+- En el footer, pequeño y sutil: "Hecho con pasión desde Argentina 🇦🇷" / "Made with passion from Argentina 🇦🇷"
+
+---
+
+## ESTRUCTURA DE PÁGINAS / SECCIONES
+
+### 1. NAVBAR (sticky, con blur backdrop)
+- Logo: SVG timón de barco + "AUSTRAL" + subtítulo "Cancún Premium"
+- Links: Experiencias/Experiences, Nosotros/About Us, Testimonios/Testimonials, Contacto/Contact
+- **Toggle de idioma** (botón ES | EN con el activo resaltado) visible y accesible
+- Botón CTA "Reservar Ahora" / "Book Now" dorado que scrollea al formulario
+- Menú hamburguesa en mobile
+
+### 2. HERO CON CARRUSEL (ver sección detallada arriba)
+- **Carrusel automático** de 6 imágenes de fondo con crossfade cada 10 segundos
+- Overlay oscuro semitransparente para legibilidad del texto
+- Logo timón grande sutil en marca de agua (15% opacidad)
+- Headline grande con tipografía Playfair Display
+  - ES: "Tu aventura premium comienza acá"
+  - EN: "Your premium adventure starts here"
+- Subtítulo descriptivo del servicio
+- Dos botones CTA: "Explorar Experiencias" / "Explore Experiences" + "Armá Tu Viaje" / "Plan Your Trip"
+- Strip de estadísticas debajo: 2,500+ viajeros, 98% satisfacción, 15+ excursiones, soporte 24/7
+- Wave divider SVG al fondo
+
+### 3. SOBRE NOSOTROS
+- Título: "No vendemos excursiones. Creamos experiencias." / "We don't sell tours. We create experiences."
+- Texto: +10 años en la Riviera Maya, viaje personalizado de punta a punta, traslados, excursiones, gastronomía, planes para lluvia
+- Grilla de íconos con servicios: Yates, Cuatriciclos, Bungee, Chichén Itzá, Snorkel, Planes Lluvia
+- Checkmarks: viaje personalizado, soporte 24/7 bilingüe, planes para lluvia
+- Imagen lateral: foto de cenote o playa
+
+### 4. EXCURSIONES (sección principal)
+- **Filtros por categoría** en tabs/pills: Todas/All, Aventura/Adventure, Relax & Confort/Relax & Comfort, Cultural
+- **6 tarjetas** en grid responsive (3 cols desktop, 2 tablet, 1 mobile)
+- **CADA tarjeta DEBE tener una foto real de Unsplash** — ver sección de imágenes arriba con las URLs correctas
+
+**Excursión 1 — Yate Privado Premium / Premium Private Yacht** (tag: MÁS VENDIDO / BEST SELLER)
+- Imagen: `photo-1567899378494-47b22a2ae96a` (yate en aguas turquesas)
+- Día exclusivo en yate de lujo, barra libre, snorkel en arrecifes, atardecer en alta mar
+- Capacidad hasta 12 personas
+- Incluye: barra libre premium, chef a bordo, equipo de snorkel, DJ opcional
+- Desde USD $1,200 | 6-8 horas
+
+**Excursión 2 — Cuatriciclos en la Selva / ATV Jungle Adventure** (tag: AVENTURA / ADVENTURE)
+- Imagen: `photo-1568772585407-9361f9bf3a87` (naturaleza/aventura off-road)
+- Recorrido off-road por selva virgen con paradas en cenotes secretos
+- Guía experto bilingüe y equipo completo de seguridad
+- Incluye: cenote privado, guía bilingüe, fotos incluidas, equipo completo
+- Desde USD $180 | 3-4 horas
+
+**Excursión 3 — Bungee Jumping Extremo / Extreme Bungee Jumping** (tag: EXTREMO / EXTREME)
+- Imagen: `photo-1521150932951-303a95503ed3` (salto extremo / aventura)
+- Salto desde 45 metros con vista panorámica al mar turquesa
+- Certificación internacional de seguridad
+- Incluye: video HD, certificación internacional, fotos profesionales, seguro
+- Desde USD $150 | 1-2 horas
+
+**Excursión 4 — Chichén Itzá VIP / VIP Chichén Itzá** (tag: CULTURAL)
+- Imagen: `photo-1518638150340-f706e86654de` (pirámide de Kukulkán)
+- Acceso temprano exclusivo, guía arqueólogo privado, almuerzo gourmet, cenote sagrado
+- Desde USD $350 | Día completo / Full day
+
+**Excursión 5 — Traslados VIP / VIP Airport Transfers** (tag: CONFORT / COMFORT)
+- Imagen: `photo-1549317661-bd32c8ce0afa` o `photo-1503376780353-7e6692767b70` (auto premium)
+- Vehículos de lujo con WiFi, bebidas frías, chofer profesional
+- Desde USD $80 | Según destino / Varies
+
+**Excursión 6 — Día de Lluvia Premium / Premium Rainy Day Plan** (tag: PLAN B)
+- Imagen: `photo-1544161515-4ab6ce6db874` (spa/masaje)
+- Spa maya, cata de tequilas, cocina mexicana con chef privado, cenotes techados
+- Desde USD $220 | 4-6 horas
+
+- Cada tarjeta al click abre **modal con detalle completo**
+- **Fallback de imagen** con `onError` handler (gradiente + emoji si falla la foto)
+
+### 5. BANNER "PLAN B — DÍAS DE LLUVIA"
+- Sección con fondo gradiente oscuro
+- Mensaje: "¿Día de lluvia? Tenemos Plan B." / "Rainy day? We've got Plan B."
+- CTA hacia contacto
+
+### 6. TESTIMONIOS
+- 3 tarjetas:
+  - María G. (Buenos Aires, AR) — 5 estrellas — sobre yate y atención
+  - Carlos & Ana (Madrid, ES) — 5 estrellas — sobre Chichén Itzá
+  - James W. (New York, US) — 5 estrellas — sobre plan lluvia
+
+### 7. PROCESO "¿CÓMO FUNCIONA?" / "HOW IT WORKS?"
+- 4 pasos (01–04): Contanos tu idea → Diseñamos tu viaje → Confirmás → Disfrutás
+
+### 8. FORMULARIO DE CONTACTO
+- Campos: Nombre, Email, Fecha, Cantidad personas, Mensaje
+- Botón: "Enviar Consulta ✦" / "Send Inquiry ✦"
+
+### 9. FOOTER
+- Logo timón + "AUSTRAL" + descripción
+- Links de excursiones
+- Contacto: info@australcancun.com, +52 998 123 4567, WhatsApp
+- "Hecho con pasión desde Argentina 🇦🇷"
+
+### 10. BOTONES FLOTANTES (ver sección detallada arriba)
+- Botón scroll-to-top con temática de ola/playa (aparece después de 400px scroll)
+- Botón WhatsApp fijo (siempre visible)
+
+---
+
+## SISTEMA DE TRADUCCIÓN (i18n)
+
+Implementar con React Context + JSON de traducciones, o `react-i18next`.
+
+```json
+{
+  "es": {
+    "nav.experiences": "Experiencias",
+    "nav.about": "Nosotros",
+    "nav.testimonials": "Testimonios",
+    "nav.contact": "Contacto",
+    "nav.book": "Reservar Ahora",
+    "hero.title": "Tu aventura premium comienza acá",
+    "hero.subtitle": "Excursiones exclusivas en yate, cuatriciclos, bungee jumping y expediciones culturales. Armamos tu viaje completo — y si llueve, tenemos un plan B espectacular.",
+    "hero.cta1": "Explorar Experiencias",
+    "hero.cta2": "Armá Tu Viaje",
+    "about.title1": "No vendemos excursiones.",
+    "about.title2": "Creamos experiencias.",
+    "excursions.title": "Excursiones que no olvidás",
+    "excursions.filter.all": "Todas",
+    "excursions.filter.adventure": "Aventura",
+    "excursions.filter.relax": "Relax & Confort",
+    "excursions.filter.cultural": "Cultural",
+    "excursions.seeDetails": "Ver Detalles",
+    "excursions.bookThis": "Reservar Esta Experiencia",
+    "rainplan.title": "¿Día de lluvia? Tenemos Plan B.",
+    "rainplan.text": "El clima tropical es impredecible, pero nosotros no. Spa maya, cata de tequilas, cenotes techados — siempre hay algo increíble para hacer.",
+    "testimonials.title": "Lo dicen nuestros viajeros",
+    "process.title": "¿Cómo funciona?",
+    "process.step1": "Contanos tu idea",
+    "process.step2": "Diseñamos tu viaje",
+    "process.step3": "Confirmás y listo",
+    "process.step4": "Disfrutás al máximo",
+    "contact.title": "Armemos tu viaje ideal",
+    "contact.subtitle": "Contanos qué tenés en mente y en menos de 24hs te mandamos una propuesta personalizada.",
+    "contact.name": "Tu nombre",
+    "contact.email": "Tu email",
+    "contact.date": "Fecha estimada",
+    "contact.guests": "Cantidad de personas",
+    "contact.message": "Contanos qué te gustaría hacer...",
+    "contact.submit": "Enviar Consulta ✦",
+    "contact.note": "Respondemos en menos de 24 horas · Sin compromiso · WhatsApp disponible",
+    "footer.passion": "Hecho con pasión desde Argentina 🇦🇷",
+    "stats.travelers": "Viajeros felices",
+    "stats.satisfaction": "Satisfacción",
+    "stats.tours": "Excursiones",
+    "stats.support": "Soporte"
+  },
+  "en": {
+    "nav.experiences": "Experiences",
+    "nav.about": "About Us",
+    "nav.testimonials": "Testimonials",
+    "nav.contact": "Contact",
+    "nav.book": "Book Now",
+    "hero.title": "Your premium adventure starts here",
+    "hero.subtitle": "Exclusive yacht excursions, ATV jungle rides, bungee jumping and cultural expeditions. We plan your entire trip — and if it rains, we have an amazing Plan B.",
+    "hero.cta1": "Explore Experiences",
+    "hero.cta2": "Plan Your Trip",
+    "about.title1": "We don't sell tours.",
+    "about.title2": "We create experiences.",
+    "excursions.title": "Unforgettable experiences",
+    "excursions.filter.all": "All",
+    "excursions.filter.adventure": "Adventure",
+    "excursions.filter.relax": "Relax & Comfort",
+    "excursions.filter.cultural": "Cultural",
+    "excursions.seeDetails": "See Details",
+    "excursions.bookThis": "Book This Experience",
+    "rainplan.title": "Rainy day? We've got Plan B.",
+    "rainplan.text": "Tropical weather is unpredictable, but we're not. Mayan spa, tequila tasting, covered cenotes — there's always something incredible to do.",
+    "testimonials.title": "What our travelers say",
+    "process.title": "How it works",
+    "process.step1": "Tell us your idea",
+    "process.step2": "We design your trip",
+    "process.step3": "Confirm and go",
+    "process.step4": "Enjoy to the fullest",
+    "contact.title": "Let's plan your dream trip",
+    "contact.subtitle": "Tell us what you have in mind and we'll send you a personalized proposal within 24 hours.",
+    "contact.name": "Your name",
+    "contact.email": "Your email",
+    "contact.date": "Estimated date",
+    "contact.guests": "Number of guests",
+    "contact.message": "Tell us what you'd like to do...",
+    "contact.submit": "Send Inquiry ✦",
+    "contact.note": "We respond within 24 hours · No commitment · WhatsApp available",
+    "footer.passion": "Made with passion from Argentina 🇦🇷",
+    "stats.travelers": "Happy travelers",
+    "stats.satisfaction": "Satisfaction",
+    "stats.tours": "Tours",
+    "stats.support": "Support"
+  }
+}
+```
+
+**IMPORTANTE**: Absolutamente TODOS los textos visibles deben estar traducidos. Incluyendo títulos de excursiones, descripciones, features, placeholders del formulario, labels — TODO. Los precios se mantienen en USD.
+
+---
+
+## PALETA DE COLORES
+
+| Nombre     | Hex       | Uso                                      |
+|------------|-----------|------------------------------------------|
+| Gold       | #C9A84C   | Acentos, CTAs, highlights, logo, scroll-top btn |
+| Deep Blue  | #0A1628   | Fondos oscuros, navbar, footer, textos   |
+| Ocean      | #0E4D64   | Gradientes, fondos secundarios           |
+| Sand       | #F5ECD7   | Fondos claros, secciones alternas        |
+| White      | #FAFAF7   | Fondo principal                          |
+| Coral      | #E07A5F   | Tags extremo, acentos secundarios        |
+| WhatsApp   | #25D366   | Botón flotante WhatsApp                  |
+
+---
+
+## TIPOGRAFÍA
+
+- **Display / Títulos**: Playfair Display (serif, con itálicas doradas para énfasis)
+- **Body / UI**: DM Sans (sans-serif, limpia)
+- Google Fonts: `Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700` + `DM+Sans:wght@300;400;500;700`
+
+---
+
+## ESTÉTICA Y DISEÑO
+
+- **Luxury tropical**: elegante, cálido, no corporativo
+- **Bordes redondeados** generosos (16px–24px)
+- **Sombras suaves**
+- **Gradientes** sutiles
+- **Espaciado generoso**
+- **Micro-interacciones**: hover lift en cards, scale en botones, underline animado en links
+- **Scroll animations**: fade-in al entrar al viewport
+- **Hero carrusel**: crossfade automático cada 10s entre 6 imágenes de playa/aventura
+- **Wave SVG divider** entre hero y contenido
+- **NO usar**: clipart, íconos genéricos como fotos, emojis reemplazando imágenes reales, gradientes violetas, Inter/Roboto, layouts predecibles
+
+---
+
+## CHECKLIST ANTES DE ENTREGAR
+
+- [ ] TODAS las 6 cards de excursiones tienen **fotos reales** visibles (NO íconos, NO clipart, NO alt-text como src)
+- [ ] El carrusel del hero funciona con 6 imágenes reales rotando cada 10s con crossfade
+- [ ] El botón scroll-to-top aparece al scrollear y funciona con smooth scroll
+- [ ] El botón de WhatsApp funciona y abre wa.me
+- [ ] El toggle ES/EN funciona en TODA la página sin textos sin traducir
+- [ ] El logo SVG del timón se ve nítido en navbar y footer
+- [ ] El modal de detalle de excursión funciona con imagen
+- [ ] El sitio es responsive en mobile, tablet y desktop
+- [ ] Las animaciones de scroll funcionan
+- [ ] Los filtros de categoría filtran correctamente
+- [ ] El formulario tiene todos los campos
+- [ ] La banderita argentina 🇦🇷 aparece en el footer
+- [ ] No hay NINGÚN texto hardcodeado fuera del sistema i18n
+- [ ] Las imágenes tienen loading="lazy" (excepto la primera del hero)
+- [ ] Las imágenes de cards usan object-fit: cover con altura consistente

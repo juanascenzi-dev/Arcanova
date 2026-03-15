@@ -130,10 +130,10 @@ const translations: Translations = {
       ctaPrimary: "Explorar Experiencias",
       ctaSecondary: "Armá Tu Viaje",
       stats: {
-        travelers: "2,500+ Viajeros",
-        satisfaction: "98% Satisfacción",
-        experiences: "15+ Excursiones",
-        support: "Soporte 24/7"
+        travelers: "Viajeros felices",
+        satisfaction: "Satisfacción",
+        experiences: "Excursiones",
+        support: "Soporte"
       }
     },
     about: {
@@ -262,10 +262,10 @@ const translations: Translations = {
       ctaPrimary: "Explore Experiences",
       ctaSecondary: "Plan Your Trip",
       stats: {
-        travelers: "2,500+ Travelers",
-        satisfaction: "98% Satisfaction",
-        experiences: "15+ Tours",
-        support: "24/7 Support"
+        travelers: "Happy travelers",
+        satisfaction: "Satisfaction",
+        experiences: "Tours",
+        support: "Support"
       }
     },
     about: {

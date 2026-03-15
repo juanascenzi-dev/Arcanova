@@ -8,6 +8,7 @@ import { HowItWorks } from '@/components/HowItWorks';
 import { Contact } from '@/components/Contact';
 import { Footer } from '@/components/Footer';
 import { WhatsAppButton } from '@/components/WhatsAppButton';
+import { ScrollToTopButton } from '@/components/ScrollToTopButton';
 
 export default function Home() {
   return (
@@ -22,6 +23,7 @@ export default function Home() {
       <Contact />
       <Footer />
       <WhatsAppButton />
+      <ScrollToTopButton />
     </main>
   );
 }
