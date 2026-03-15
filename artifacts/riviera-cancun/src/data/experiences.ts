@@ -7,6 +7,7 @@ export type ExperienceData = {
   category: Category[];
   tagType: 'bestSeller' | 'adventure' | 'extreme' | 'cultural' | 'comfort' | 'planB';
   imageUrl: string;
+  fallbackEmoji: string;
 };
 
 export const experiencesData: ExperienceData[] = [
@@ -16,8 +17,8 @@ export const experiencesData: ExperienceData[] = [
     durationHours: "6-8",
     category: ['adventure', 'relax'],
     tagType: 'bestSeller',
-    // Unsplash: Luxury Yacht
-    imageUrl: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=800&q=80"
+    imageUrl: "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=800&q=80",
+    fallbackEmoji: "⛵"
   },
   {
     id: 'id2',
@@ -25,8 +26,8 @@ export const experiencesData: ExperienceData[] = [
     durationHours: "3-4",
     category: ['adventure'],
     tagType: 'adventure',
-    // Unsplash: ATV Jungle
-    imageUrl: "https://images.unsplash.com/photo-1596404987829-450f38b29c54?w=800&q=80"
+    imageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&q=80",
+    fallbackEmoji: "🏍️"
   },
   {
     id: 'id3',
@@ -34,8 +35,8 @@ export const experiencesData: ExperienceData[] = [
     durationHours: "1-2",
     category: ['adventure'],
     tagType: 'extreme',
-    // Unsplash: Bungee/Extreme sports
-    imageUrl: "https://images.unsplash.com/photo-1526463959828-56eb0f00fbd4?w=800&q=80"
+    imageUrl: "https://images.unsplash.com/photo-1541480601022-2308c0f02487?w=800&q=80",
+    fallbackEmoji: "🪂"
   },
   {
     id: 'id4',
@@ -43,8 +44,8 @@ export const experiencesData: ExperienceData[] = [
     durationHours: "8-10",
     category: ['cultural'],
     tagType: 'cultural',
-    // Unsplash: Chichen Itza / Ruins
-    imageUrl: "https://images.unsplash.com/photo-1518182170546-076616fdfaaf?w=800&q=80"
+    imageUrl: "https://images.unsplash.com/photo-1518638150340-f706e86654de?w=800&q=80",
+    fallbackEmoji: "🏛️"
   },
   {
     id: 'id5',
@@ -52,8 +53,8 @@ export const experiencesData: ExperienceData[] = [
     durationHours: "1-2",
     category: ['relax'],
     tagType: 'comfort',
-    // Unsplash: Luxury SUV / Transport
-    imageUrl: "https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=800&q=80"
+    imageUrl: "https://images.unsplash.com/photo-1549317661-bd32c8ce0afa?w=800&q=80",
+    fallbackEmoji: "🚙"
   },
   {
     id: 'id6',
@@ -61,7 +62,7 @@ export const experiencesData: ExperienceData[] = [
     durationHours: "4-6",
     category: ['relax'],
     tagType: 'planB',
-    // Unsplash: Indoor Luxury Spa / Museum
-    imageUrl: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&q=80"
+    imageUrl: "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=800&q=80",
+    fallbackEmoji: "🧖"
   }
 ];

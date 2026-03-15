@@ -1,5 +1,6 @@
 import { useTranslation } from '@/contexts/i18n';
 import { Instagram, Facebook, Mail, Phone, MapPin } from 'lucide-react';
+import { Logo } from '@/components/Logo';
 
 export function Footer() {
   const { t } = useTranslation();
@@ -15,18 +16,17 @@ export function Footer() {
           
           {/* Brand */}
           <div className="lg:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 rounded bg-brand-gold flex items-center justify-center text-white">
-                ✦
-              </div>
+            <div className="flex items-center gap-3 mb-4">
+              <Logo size={38} color="#C9A84C" />
               <div className="flex flex-col">
-                <span className="font-display font-bold text-xl leading-none tracking-wider text-white">RIVIERA</span>
+                <span className="font-display font-bold text-xl leading-none tracking-[0.15em] text-white">AUSTRAL</span>
                 <span className="text-[10px] uppercase tracking-widest text-brand-gold">Cancún Premium</span>
               </div>
             </div>
-            <p className="text-white/60 text-sm leading-relaxed">
+            <p className="text-white/60 text-sm leading-relaxed mb-4">
               {t.footer.tagline}
             </p>
+            <p className="text-white/30 text-xs">{t.footer.passion}</p>
           </div>
 
           {/* Links */}
@@ -46,7 +46,7 @@ export function Footer() {
             <ul className="space-y-3 text-sm text-white/60">
               <li className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-brand-gold" />
-                info@rivieracancunpremium.com
+                info@australcancun.com
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-brand-gold" />

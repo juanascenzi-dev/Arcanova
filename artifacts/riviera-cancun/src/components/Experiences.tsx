@@ -77,11 +77,23 @@ export function Experiences() {
                   key={exp.id}
                   className="bg-white rounded-2xl overflow-hidden shadow-lg shadow-black/5 border border-brand-navy/5 group hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col"
                 >
-                  <div className="relative h-64 overflow-hidden">
+                  <div className="relative h-64 overflow-hidden bg-gradient-to-br from-brand-ocean to-brand-navy">
                     <img 
                       src={exp.imageUrl} 
                       alt={itemText.title} 
+                      loading="lazy"
                       className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        target.style.display = 'none';
+                        const parent = target.parentElement;
+                        if (parent && !parent.querySelector('.img-fallback')) {
+                          const fb = document.createElement('div');
+                          fb.className = 'img-fallback absolute inset-0 flex items-center justify-center text-6xl';
+                          fb.textContent = exp.fallbackEmoji;
+                          parent.appendChild(fb);
+                        }
+                      }}
                     />
                     <div className="absolute top-4 left-4">
                       <span className={cn("px-3 py-1 text-[10px] font-black uppercase tracking-wider rounded-full shadow-sm", getTagColor(exp.tagType))}>
@@ -131,8 +143,13 @@ export function Experiences() {
             const itemText = t.experiences.items[selectedExp.id as keyof typeof t.experiences.items];
             return (
               <div className="flex flex-col max-h-[90vh]">
-                <div className="relative h-64 shrink-0">
-                  <img src={selectedExp.imageUrl} alt={itemText.title} className="w-full h-full object-cover" />
+                <div className="relative h-64 shrink-0 bg-gradient-to-br from-brand-ocean to-brand-navy">
+                  <img
+                    src={selectedExp.imageUrl}
+                    alt={itemText.title}
+                    className="w-full h-full object-cover"
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                   <DialogClose className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white hover:bg-white hover:text-black transition-colors">
                     <X size={18} />
@@ -163,7 +180,7 @@ export function Experiences() {
                     {itemText.desc}
                   </p>
 
-                  <h4 className="font-bold text-brand-navy mb-3">¿Qué incluye?</h4>
+                  <h4 className="font-bold text-brand-navy mb-3">{t.experiences.labels.includes}</h4>
                   <ul className="space-y-2 mb-8">
                     {itemText.includes.map((inc, i) => (
                       <li key={i} className="flex items-start gap-2">

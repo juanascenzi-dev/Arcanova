@@ -55,6 +55,7 @@ type Translations = {
         duration: string;
         details: string;
         bookThis: string;
+        includes: string;
       };
       tags: {
         bestSeller: string;
@@ -107,6 +108,7 @@ type Translations = {
       contact: string;
       social: string;
       rights: string;
+      passion: string;
     };
   }
 };
@@ -163,7 +165,8 @@ const translations: Translations = {
         from: "Desde USD",
         duration: "Duración",
         details: "Ver Detalles",
-        bookThis: "Reservar Esta Experiencia"
+        bookThis: "Reservar Esta Experiencia",
+        includes: "¿Qué incluye?"
       },
       tags: {
         bestSeller: "MÁS VENDIDO",
@@ -235,11 +238,12 @@ const translations: Translations = {
       success: "¡Gracias! Hemos recibido tu consulta. Nos contactaremos pronto."
     },
     footer: {
-      tagline: "Redefiniendo el turismo de lujo en el Caribe.",
+      tagline: "Del sur al paraíso — tu aventura premium en la Riviera Maya.",
       experiences: "Experiencias",
       contact: "Contacto",
       social: "Redes Sociales",
-      rights: "Riviera Cancún Premium. Todos los derechos reservados."
+      rights: "AUSTRAL Cancún Premium. Todos los derechos reservados.",
+      passion: "Hecho con pasión desde Argentina 🇦🇷"
     }
   },
   en: {
@@ -293,7 +297,8 @@ const translations: Translations = {
         from: "From USD",
         duration: "Duration",
         details: "See Details",
-        bookThis: "Book This Experience"
+        bookThis: "Book This Experience",
+        includes: "What's included?"
       },
       tags: {
         bestSeller: "BEST SELLER",
@@ -365,11 +370,12 @@ const translations: Translations = {
       success: "Thank you! We've received your inquiry and will contact you soon."
     },
     footer: {
-      tagline: "Redefining luxury tourism in the Caribbean.",
+      tagline: "From the south to paradise — your premium adventure in the Riviera Maya.",
       experiences: "Experiences",
       contact: "Contact",
       social: "Social Media",
-      rights: "Riviera Cancún Premium. All rights reserved."
+      rights: "AUSTRAL Cancún Premium. All rights reserved.",
+      passion: "Made with passion from Argentina 🇦🇷"
     }
   }
 };

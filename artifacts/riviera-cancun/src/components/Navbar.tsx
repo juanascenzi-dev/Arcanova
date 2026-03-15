@@ -3,6 +3,7 @@ import { useTranslation } from '@/contexts/i18n';
 import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Logo } from '@/components/Logo';
 
 export function Navbar() {
   const { lang, setLang, t } = useTranslation();
@@ -40,14 +41,12 @@ export function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         {/* Logo */}
         <div 
-          className="flex items-center gap-2 cursor-pointer group" 
+          className="flex items-center gap-3 cursor-pointer group" 
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         >
-          <div className="w-8 h-8 rounded bg-brand-gold flex items-center justify-center text-white transform group-hover:rotate-45 transition-transform duration-500">
-            ✦
-          </div>
+          <Logo size={36} color="#C9A84C" className="group-hover:rotate-45 transition-transform duration-700" />
           <div className="flex flex-col">
-            <span className="font-display font-bold text-xl leading-none tracking-wider text-white">RIVIERA</span>
+            <span className="font-display font-bold text-xl leading-none tracking-[0.15em] text-white">AUSTRAL</span>
             <span className="text-[10px] uppercase tracking-widest text-brand-gold">Cancún Premium</span>
           </div>
         </div>

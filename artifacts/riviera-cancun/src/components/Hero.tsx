@@ -1,5 +1,6 @@
 import { useTranslation } from '@/contexts/i18n';
 import { motion } from 'framer-motion';
+import { ShipWheelIcon } from '@/components/Logo';
 
 export function Hero() {
   const { t } = useTranslation();
@@ -12,16 +13,25 @@ export function Hero() {
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-brand-navy pt-20">
       {/* Background Image & Overlay */}
       <div className="absolute inset-0 z-0">
-        {/* Unsplash: Drone view of Cancún/Yacht */}
         <img 
-          src="https://images.unsplash.com/photo-1552074284-5e88ef1aef18?w=1920&q=80" 
-          alt="Riviera Cancun aerial view" 
+          src="https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=1920&q=80" 
+          alt="Cancún beach turquoise waters" 
           className="w-full h-full object-cover"
         />
-        {/* Gradient Wash */}
         <div className="absolute inset-0 bg-gradient-to-b from-brand-navy/90 via-brand-ocean/80 to-brand-navy/95 mix-blend-multiply" />
-        <div className="absolute inset-0 bg-dot-pattern opacity-30" />
+        <div className="absolute inset-0 bg-dot-pattern opacity-20" />
       </div>
+
+      {/* Rotating Ship Wheel Watermark */}
+      <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none">
+        <div
+          className="opacity-[0.07]"
+          style={{ animation: 'spin 60s linear infinite' }}
+        >
+          <ShipWheelIcon size={480} color="#C9A84C" />
+        </div>
+      </div>
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center mt-10">
         
@@ -31,7 +41,7 @@ export function Hero() {
           transition={{ duration: 0.8, delay: 0.2 }}
         >
           <span className="inline-block py-1 px-3 rounded-full bg-white/10 border border-brand-gold/30 text-brand-gold text-xs font-bold tracking-widest uppercase mb-6 backdrop-blur-sm">
-            Riviera Cancún Premium
+            AUSTRAL · Cancún Premium
           </span>
         </motion.div>
 
