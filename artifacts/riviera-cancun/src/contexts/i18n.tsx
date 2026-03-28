@@ -127,6 +127,41 @@ type Translations = {
       copied: string;
       note: string;
     };
+    quote: {
+      cartTitle: string;
+      addItem: string;
+      updateItem: string;
+      editItem: string;
+      removeItem: string;
+      emptyCart: string;
+      emptyCartHint: string;
+      subtotal: string;
+      totalLabel: string;
+      startDate: string;
+      endDate: string;
+      days: string;
+      travelers: string;
+      adults: string;
+      children: string;
+      seniors: string;
+      pricingOptional: string;
+      perAdult: string;
+      perChild: string;
+      perSenior: string;
+      flatPrice: string;
+      notes: string;
+      notesPlaceholder: string;
+      contactVia: string;
+      whatsapp: string;
+      email: string;
+      facebook: string;
+      clearCart: string;
+      itemSingular: string;
+      itemPlural: string;
+      addedToCart: string;
+      contactNote: string;
+      noItemsWarning: string;
+    };
   }
 };
 
@@ -275,6 +310,41 @@ const translations: Translations = {
       back: "Volver",
       copied: "¡Copiado al portapapeles!",
       note: "No realizamos cobros por la web. El cierre de la reserva se coordina directamente con vos."
+    },
+    quote: {
+      cartTitle: "Tu cotización",
+      addItem: "Agregar al carrito",
+      updateItem: "Actualizar ítem",
+      editItem: "Editar",
+      removeItem: "Eliminar",
+      emptyCart: "Tu carrito está vacío",
+      emptyCartHint: "Completá los datos de arriba y agregá esta experiencia.",
+      subtotal: "Subtotal",
+      totalLabel: "Total estimado",
+      startDate: "Fecha de inicio",
+      endDate: "Fecha de fin (opcional)",
+      days: "Días",
+      travelers: "Viajeros",
+      adults: "Adultos",
+      children: "Niños",
+      seniors: "Adultos mayores",
+      pricingOptional: "Precio estimado (opcional)",
+      perAdult: "por adulto",
+      perChild: "por niño",
+      perSenior: "por adulto mayor",
+      flatPrice: "Precio fijo por paquete",
+      notes: "Notas",
+      notesPlaceholder: "Ej: habitación con vista al mar, dieta especial...",
+      contactVia: "Contactar por",
+      whatsapp: "WhatsApp",
+      email: "Email",
+      facebook: "Facebook",
+      clearCart: "Vaciar carrito",
+      itemSingular: "experiencia",
+      itemPlural: "experiencias",
+      addedToCart: "¡Agregado al carrito!",
+      contactNote: "No realizamos cobros por la web. La reserva se coordina directamente con vos.",
+      noItemsWarning: "Agregá al menos una experiencia para continuar.",
     },
     admin: {
       editExperience: "Editar experiencia",
@@ -446,6 +516,41 @@ const translations: Translations = {
       back: "Go back",
       copied: "Copied to clipboard!",
       note: "We don't process payments online. Booking is confirmed directly with you."
+    },
+    quote: {
+      cartTitle: "Your quote",
+      addItem: "Add to quote",
+      updateItem: "Update item",
+      editItem: "Edit",
+      removeItem: "Remove",
+      emptyCart: "Your quote is empty",
+      emptyCartHint: "Fill in the details above and add this experience.",
+      subtotal: "Subtotal",
+      totalLabel: "Total estimate",
+      startDate: "Start date",
+      endDate: "End date (optional)",
+      days: "Days",
+      travelers: "Travelers",
+      adults: "Adults",
+      children: "Children",
+      seniors: "Seniors",
+      pricingOptional: "Estimated pricing (optional)",
+      perAdult: "per adult",
+      perChild: "per child",
+      perSenior: "per senior",
+      flatPrice: "Flat price per package",
+      notes: "Notes",
+      notesPlaceholder: "E.g. ocean view room, special diet...",
+      contactVia: "Contact via",
+      whatsapp: "WhatsApp",
+      email: "Email",
+      facebook: "Facebook",
+      clearCart: "Clear quote",
+      itemSingular: "experience",
+      itemPlural: "experiences",
+      addedToCart: "Added to your quote!",
+      contactNote: "We don't process payments online. Booking is confirmed directly with you.",
+      noItemsWarning: "Please add at least one experience to proceed.",
     },
     admin: {
       editExperience: "Edit Experience",

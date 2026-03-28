@@ -1,0 +1,232 @@
+Quiero refactorizar el flujo de contacto/compra del proyecto `artifacts/riviera-cancun` para reemplazar el formulario actual por un **cotizador tipo carrito** y corregir el error actual de “Error al guardar tu interés”.
+
+## Objetivo funcional
+
+Hoy el modal de una experiencia pide fecha y cantidad de personas y luego dispara canales de contacto (WhatsApp, Email, Facebook), pero:
+
+* falla el guardado del interés,
+* el UX es pobre,
+* no permite cotizar de forma real,
+* y arma mensajes demasiado simples.
+
+Quiero convertirlo en un flujo más útil:
+
+### Nuevo comportamiento esperado
+
+1. **No mostrar error si faltan datos opcionales**.
+   No debe intentar persistir automáticamente al cambiar campos si todavía no corresponde.
+
+2. **Reemplazar el formulario simple por una calculadora/cotizador** dentro del modal de experiencia.
+
+3. El usuario debe poder cargar uno o varios ítems/intereses, como un **carrito**:
+
+   * experiencia / paquete
+   * fecha o rango de fechas
+   * cantidad de días
+   * cantidad de personas separadas por tipo:
+
+     * adultos
+     * niños
+     * adultos mayores
+   * precio unitario editable por tipo de persona si aplica
+   * subtotal por ítem
+   * total general
+
+4. Debe permitir:
+
+   * agregar varios paquetes o varias fechas
+   * editar un ítem
+   * eliminar un ítem
+   * persistir el carrito localmente en frontend para no perderlo al cerrar/reabrir modal o navegar
+
+5. Al final, los botones de contacto deben armar un mensaje completo con el resumen del carrito para:
+
+   * WhatsApp
+   * Email
+   * Facebook Messenger
+
+6. El mensaje debe incluir algo así:
+
+   * nombre de la experiencia o paquete
+   * fecha / rango
+   * cantidad de días
+   * cantidad de adultos, niños y adultos mayores
+   * subtotal por línea
+   * total estimado
+   * nombre del destino/negocio
+   * un texto natural tipo “Nos interesa cotizar esto…”
+
+## Importante de UX
+
+Quiero una UI más prolija y clara que la actual:
+
+* pasos visuales o bloques bien separados
+* no mostrar un error rojo apenas abre el modal
+* validaciones amigables
+* placeholders y labels claros
+* resumen del carrito visible antes de contactar
+* CTA principal: “Agregar al carrito” / “Actualizar ítem”
+* CTA secundarios: “Contactar por WhatsApp”, “Contactar por Email”, “Contactar por Facebook”
+
+## Alcance técnico
+
+### Frontend
+
+Revisar y refactorizar los componentes del flujo actual del modal/contacto.
+Buscar especialmente:
+
+* `ContactChannelSelector.tsx`
+* modal de experiencia/producto
+* utilidades de generación de links y mensajes
+* store/context si existe
+
+Implementar:
+
+* un estado local o global para el carrito/cotizador
+* persistencia en `localStorage`
+* tipos TS claros para los ítems del carrito
+* funciones puras para:
+
+  * calcular subtotales
+  * calcular total general
+  * generar payload de contacto
+  * generar mensajes por canal
+
+### Modelo sugerido
+
+Crear una estructura tipo:
+
+```ts
+type TravelerBreakdown = {
+  adults: number;
+  children: number;
+  seniors: number;
+};
+
+type Pricing = {
+  adultPrice?: number;
+  childPrice?: number;
+  seniorPrice?: number;
+  flatPrice?: number;
+};
+
+type QuoteItem = {
+  id: string;
+  experienceId: string;
+  experienceName: string;
+  startDate?: string;
+  endDate?: string;
+  days?: number;
+  travelers: TravelerBreakdown;
+  pricing: Pricing;
+  notes?: string;
+  subtotal: number;
+};
+
+type QuoteCart = {
+  items: QuoteItem[];
+  total: number;
+  currency?: string;
+  updatedAt: string;
+};
+```
+
+Podés ajustar el modelo si encontrás uno mejor, pero mantené esta idea.
+
+### Reglas de cálculo
+
+* Si hay precios por tipo de pasajero, subtotal =
+  `adults * adultPrice + children * childPrice + seniors * seniorPrice`
+* Si además hay cantidad de días y corresponde multiplicar por días, contemplarlo.
+* Si existe un precio plano por paquete, soportarlo también.
+* El total general debe sumar todos los ítems.
+
+### Generación del mensaje
+
+Crear un generador único y reutilizable para los tres canales.
+Ejemplo de mensaje esperado:
+
+“Hola, nos interesa cotizar las siguientes experiencias:
+
+1. Extreme Bungee Jumping
+
+* Fecha: 27/03/2026
+* Días: 1
+* Adultos: 2
+* Niños: 1
+* Adultos mayores: 0
+* Subtotal estimado: USD XXX
+
+2. [Otro paquete]
+   ...
+
+Total estimado: USD XXX
+
+Quedamos atentos. Gracias.”
+
+Para WhatsApp usar encoding correcto.
+Para Email usar subject + body.
+Para Facebook/Messenger reutilizar el mismo resumen.
+
+## Bug actual a corregir
+
+Ahora aparece:
+“Error al guardar tu interés. Por favor, intenta de nuevo.”
+
+Y en consola del backend dev aparece algo relacionado con:
+`ERR_ERL_UNEXPECTED_X_FORWARDED_FOR`
+
+Necesito que:
+
+1. identifiques por qué hoy falla la request,
+2. lo corrijas,
+3. y evites que la UI dependa de ese guardado para funcionar.
+
+El contacto debe seguir funcionando aunque falle una persistencia no crítica.
+
+### Revisar en backend
+
+Probablemente haya que revisar Express + rate limit + proxy en Replit:
+
+* configuración de `trust proxy`
+* uso de `express-rate-limit`
+* si el endpoint de leads/interests se ejecuta en dev detrás de proxy
+* no bloquear el flujo de contacto por una validación de infraestructura
+
+Quiero solución robusta en dev y que no rompa deploy.
+
+## Entregables
+
+1. Código implementado
+2. Resumen de arquitectura de la solución
+3. Lista de archivos modificados
+4. Qué datos quedan persistidos en localStorage
+5. Ejemplos de mensajes generados por:
+
+   * WhatsApp
+   * Email
+   * Facebook
+6. Explicación concreta del bug actual y cómo quedó corregido
+
+## Criterios de aceptación
+
+* Ya no aparece el error rojo al abrir/completar el formulario sin contexto
+* Se pueden agregar múltiples ítems al carrito
+* Se puede separar viajeros por adultos / niños / adultos mayores
+* Se pueden usar fechas y cantidad de días
+* Se calcula subtotal y total correctamente
+* El carrito persiste al recargar
+* WhatsApp, Email y Facebook abren con el mensaje completo del carrito
+* Si falla el backend de leads, el usuario igual puede contactar
+* El fix no rompe la configuración actual de datos de contacto
+
+## Muy importante
+
+No hagas PR ni merge automático.
+Generá también un archivo `.txt` de reporte técnico en `/docs/dev-logs/` con fecha y commit asociado, explicando:
+
+* diagnóstico,
+* cambios hechos,
+* archivos tocados,
+* riesgos pendientes,
+* próximos pasos sugeridos.

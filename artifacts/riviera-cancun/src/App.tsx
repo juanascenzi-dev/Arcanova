@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { I18nProvider } from "@/contexts/i18n";
 import { AdminProvider } from "@/contexts/AdminContext";
+import { QuoteCartProvider } from "@/contexts/QuoteCartContext";
 import Home from "@/pages/Home";
 import Admin from "@/pages/Admin";
 import NotFound from "@/pages/not-found";
@@ -26,10 +27,12 @@ function App() {
       <TooltipProvider>
         <AdminProvider>
           <I18nProvider>
-            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-              <Router />
-            </WouterRouter>
-            <Toaster />
+            <QuoteCartProvider>
+              <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+                <Router />
+              </WouterRouter>
+              <Toaster />
+            </QuoteCartProvider>
           </I18nProvider>
         </AdminProvider>
       </TooltipProvider>

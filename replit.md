@@ -44,6 +44,7 @@ A luxury tourism landing page for AUSTRAL Cancún Premium — a premium tour ope
 - **Hero carousel** — 6 Unsplash images (1200px, q=75) rotating every 10s with lazy loading (only loads current + next slide)
 - **Ship wheel (timón) SVG logo** — custom inline SVG, reusable `<Logo />` component with size/color props
 - **6 experience cards** with real Unsplash images, category filter tabs, and detail modals
+- **Quote cart** — multi-experience cart persisted to `localStorage` (`austral_quote_cart`). `QuoteCartContext` (add/update/remove/clear per item with traveler breakdown, date range, optional per-person pricing, notes). `src/lib/quote.ts` has pure calculation and message-building utilities. `ContactChannelSelector` builds a full cart summary and opens WhatsApp/Email/Facebook with a consolidated inquiry message. Lead save is fire-and-forget (non-blocking).
 - **Inquiry flow** — ContactChannelSelector in modals: WhatsApp, Email, Facebook. Leads saved to PostgreSQL.
 - **Image error fallback** — `onError` handler shows gradient + emoji if Unsplash fails
 - **Scroll-to-top button** — appears after 400px scroll, themed with wave/arrow SVG, gold color

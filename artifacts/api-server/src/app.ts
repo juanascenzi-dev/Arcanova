@@ -6,6 +6,12 @@ import router from "./routes";
 
 const app: Express = express();
 
+// ─── Trust proxy ─────────────────────────────────────────────────────────────
+// Required when running behind Replit's / Railway's reverse proxy so that
+// express-rate-limit can correctly read the real client IP from X-Forwarded-For.
+// Value `1` means "trust the first proxy in the chain".
+app.set("trust proxy", 1);
+
 // ─── Security headers ────────────────────────────────────────────────────────
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
