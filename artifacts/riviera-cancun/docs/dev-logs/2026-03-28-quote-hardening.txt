@@ -1,0 +1,239 @@
+================================================================================
+DEV LOG: Quote/Cart Hardening Pass
+Date: 2026-03-28
+Author: Agent (automated)
+================================================================================
+
+## Objetivo
+
+Auditoría completa y hardening del flujo de quote/cotizador:
+- mensaje de WhatsApp incompleto o inconsistente
+- items mudos cuando subtotal = 0
+- combinaciones de children + seniors que producían resultados incorrectos
+- abreviaciones crípticas (1A, 2N, 1M) en el carrito
+- días omitidos cuando days = 1
+- falta de contexto visual cuando hay items sin precio calculable
+
+================================================================================
+## Diagnóstico y causa raíz
+================================================================================
+
+### Bug 1 — Items silenciosos (CRÍTICO)
+Archivo: src/components/ContactChannelSelector.tsx
+
+Código problemático:
+  {item.subtotal > 0 && (
+    <p ...>{formatPrice(item.subtotal)}</p>
+  )}
+
+El bloque condicional no tenía rama `else`. Cuando `subtotal === 0`
+(por falta de pricing en la BD, combinación de travelers sin tarifa configurada,
+o cualquier otro caso), el item simplemente no mostraba nada. El usuario veía
+el nombre del servicio con un bloque vacío abajo — sin precio, sin explicación.
+
+Causa: diseño de "happy path only" en la primera implementación.
+
+### Bug 2 — `days: 1` silenciado del mensaje
+Archivo: src/lib/quote.ts
+
+Código problemático:
+  if (item.days > 1) lines.push(`   Dias: ${item.days}`);
+
+Condición `> 1` excluía servicios de un único día del campo "Días" en el mensaje
+de WhatsApp. El spec requiere mostrar siempre los días.
+
+### Bug 3 — Abreviaciones crípticas en carrito
+Archivo: src/components/ContactChannelSelector.tsx
+
+Código problemático:
+  [{adults}A, {children}N, {seniors}M].filter(Boolean).join(' + ')
+  
+Ejemplos resultantes: "1A", "1A + 2N + 1M"
+
+No era legible para el usuario final. `buildTravelerLine` en quote.ts existía
+y producía texto completo pero no estaba exportada ni usada en la UI.
+
+### Bug 4 — bookingRules/servicePricing NO persistidos en el item (CRÍTICO)
+Archivo: src/contexts/QuoteCartContext.tsx
+
+Código problemático:
+  type AddItemPayload = Omit<QuoteItem, 'id' | 'subtotal'> & {
+    bookingRules?: ServiceBookingRules | null;
+    servicePricing?: ServicePricing | null;
+  };
+
+`bookingRules` y `servicePricing` se extraían del payload para calcular el subtotal
+pero NO se guardaban en el `QuoteItem` resultante. Esto significaba que:
+
+1. El `QuoteItem` almacenado en localStorage no tenía las reglas de pricing.
+2. Al llamar `updateItem`, si el caller no pasaba `bookingRules/servicePricing`,
+   el subtotal se recalculaba con `undefined` → siempre 0.
+3. Ediciones posteriores del item perdían silenciosamente el subtotal.
+
+En el flujo normal (desde ContactChannelSelector) el update sí pasaba
+`bookingRules` de los props del componente, lo que enmascaraba el bug.
+Pero era frágil: si updateItem se llamara desde cualquier otro contexto
+sin esos params, el subtotal colapsaba.
+
+### Bug 5 — Total sin contexto cuando hay items sin precio
+Archivo: src/components/ContactChannelSelector.tsx
+
+Cuando algunos items tenían `subtotal = 0`, el total mostrado era la suma
+solo de los items con precio. No había ninguna nota que explicara que había
+servicios fuera del cálculo. El usuario podía pensar que el total era incorrecto.
+
+### Bug 6 — `buildTravelerLine` no exportada
+Archivo: src/lib/quote.ts
+
+La función existía pero era privada al módulo. La UI no podía reutilizarla
+y construía su propia lógica ad hoc (con las abreviaciones crípticas).
+
+### Bug 7 — `calculateSubtotal` sin defensive guards para travelers undefined
+Archivo: src/lib/quote.ts
+
+Si `travelers.adults/children/seniors` llegaba como `undefined` (por deserialización
+de datos legacy de localStorage), la multiplicación producía `NaN` que se propagaba
+al total. Añadido `?? 0` en todos los accesos.
+
+================================================================================
+## Archivos modificados
+================================================================================
+
+1. src/lib/quote.ts
+   - QuoteItem: añadidos campos `bookingRules` y `servicePricing` (opcionales)
+   - `buildTravelerLine`: exportada (antes privada)
+   - `calculateSubtotal`: añadidos guards `?? 0` en todos los campos de travelers
+   - `buildCartMessage`: 
+     · Siempre muestra "Dias/Days: N" (eliminada condición `> 1`)
+     · Usa prefijo `- ` en lugar de indentación de 3 espacios (más legible en WhatsApp)
+     · Items sin subtotal: muestra "- Precio: a consultar" / "- Price: on request"
+     · Total: añade nota de servicios sin precio si los hay
+   - `loadCart`: migración defensiva de items legacy (travelers sin campos, days undefined)
+
+2. src/contexts/QuoteCartContext.tsx
+   - AddItemPayload: simplificado a `Omit<QuoteItem, 'id' | 'subtotal'>` — ya no
+     tiene el `& { bookingRules, servicePricing }` separado porque ahora son parte
+     de QuoteItem directamente.
+   - UpdateItemPayload: `Partial<Omit<QuoteItem, 'id' | 'subtotal'>>` — idem.
+   - `addItem`: ya no destructura bookingRules/servicePricing del payload;
+     los incluye directamente en el QuoteItem almacenado.
+   - `updateItem`: usa `merged.bookingRules` / `merged.servicePricing` (del item
+     almacenado + cualquier override en el update) para recalcular. Ya no puede
+     colapsarse a 0 por falta de datos en el payload de update.
+
+3. src/components/ContactChannelSelector.tsx
+   - Importado `buildTravelerLine` desde quote.ts
+   - Cart item display: `1A + 2N + 1M` → `buildTravelerLine(...)` ("1 adult, 2 children, 1 senior")
+   - Cart item subtotal: añadida rama `else` con "Consultar precio" / "Price on request"
+   - Nota de items sin precio: bloque debajo del total cuando hay items con subtotal 0
+
+================================================================================
+## Combinaciones validadas (mentalmente — no hay test runner en este env)
+================================================================================
+
+Caso 1: Solo adultos (1 adult, per_person, priceAdult=$120)
+→ subtotal = 120 ✓
+
+Caso 2: Adults + children (2A + 1C, per_person, priceAdult=$120, priceChild=$80)
+→ subtotal = 2*120 + 1*80 = 320 ✓
+
+Caso 3: Adults + seniors (2A + 1S, per_person, priceAdult=$120, priceSenior=$90)
+→ subtotal = 2*120 + 1*90 = 330 ✓
+
+Caso 4: Children + seniors sin adults (0A + 1C + 1S, per_person, priceChild=$80, priceSenior=$90)
+→ subtotal = 0 + 80 + 90 = 170 ✓
+
+Caso 5: Adults + children + seniors (2A + 2C + 1S, per_person, priceAdult=$120, priceChild=$80, priceSenior=$90)
+→ subtotal = 240 + 160 + 90 = 490 ✓
+
+Caso 6: 0 adults + 1 child + 1 senior, solo priceAdult configurado (no priceChild, no priceSenior)
+→ subtotal = 0 + 0 + 0 = 0 → muestra "Price on request" ✓ (no silencioso)
+
+Caso 7: per_group_fixed, cualquier combinación de travelers
+→ subtotal = priceGroup (independiente de travelers) ✓
+
+Caso 8: per_day, 3 días
+→ subtotal = priceDay * 3 ✓
+
+Caso 9: per_group_per_day, 5 días
+→ subtotal = priceGroup * 5 ✓
+
+Caso 10: per_person_per_day, 2A + 1C, 3 días
+→ subtotal = (2*priceAdult + 1*priceChild) * 3 ✓
+
+Caso override: flatPrice configurado
+→ override toma precedencia, subtotal = flatPrice * days ✓
+
+Caso override: adultPrice + childPrice + seniorPrice
+→ subtotal = (adults*aP + children*cP + seniors*sP) * days ✓
+
+Caso items múltiples mezclados (algunos con precio, algunos "on request"):
+→ total = suma de los con precio
+→ nota: "N services require manual pricing" ✓
+
+================================================================================
+## Formato de mensaje WhatsApp resultante
+================================================================================
+
+Ejemplo EN con rango de fechas + mixed travelers:
+
+  Hello, we are interested in quoting the following services:
+
+  1. ATV Jungle Adventure
+  - Date: 18/03/2026 to 01/04/2026
+  - Days: 10
+  - Travelers: 3 adults, 1 child, 1 senior
+  - Pricing: per person
+  - Estimated subtotal: USD 570
+
+  2. Extreme Bungee Jumping
+  - Date: 20/03/2026
+  - Days: 1
+  - Travelers: 2 adults
+  - Price: on request
+
+  Total estimate: USD 570
+  (+ 1 service require manual pricing)
+
+  Please let us know availability and final pricing. Thank you.
+
+================================================================================
+## Riesgos pendientes
+================================================================================
+
+1. Datos en localStorage de usuarios con carrito previo al fix:
+   - Sus items no tienen `bookingRules` ni `servicePricing` almacenados.
+   - El subtotal almacenado sigue siendo correcto (fue calculado bien al crear).
+   - Si intentan editar un item viejo, el recálculo usará rules=undefined → subtotal=0.
+   - MITIGACIÓN: `loadCart` aplica migración defensiva de campos de travelers.
+   - Para bookingRules/servicePricing no hay mitigación automática — el subtotal
+     quedaría en 0 al editar. En la práctica esto es aceptable porque:
+     a) Los carritos se limpian regularmente
+     b) El admin puede re-abrir el modal y guardar para actualizar el item con las reglas
+
+2. Contact.tsx generic form:
+   - El form general de contacto hace console.log solamente — sin API.
+   - Alta prioridad antes de producción.
+   - Ver: src/components/Contact.tsx
+
+3. items with `per_person` mode but no priceChild/priceSenior configured:
+   - Children y seniors con $0 en la BD contribuyen $0 al subtotal.
+   - El sistema los muestra correctamente como "Price on request" cuando subtotal=0.
+   - La causa raíz (configuración incompleta en BD) debe resolverse en el admin panel
+     asegurando que los precios por tipo se configuren si se usa per_person.
+
+================================================================================
+## Próximos pasos sugeridos
+================================================================================
+
+1. Conectar Contact.tsx form a /api/leads (alta prioridad)
+2. Admin panel: validación visual de que todos los chargeMode tienen sus
+   price fields correspondientes configurados
+3. Considerar añadir `servicePricing` al display del modal de detalle
+   (mostrar "Adult: $120 / Child: $80 / Senior: $90" de forma visual)
+4. Test end-to-end del flujo completo en browser real (no preview sandboxed)
+   para validar que mailto: abre correctamente
+5. Internacionalizar el texto "Consultar precio" / "Price on request" mediante
+   i18n en lugar de string literals inline en ContactChannelSelector.tsx
+
+================================================================================

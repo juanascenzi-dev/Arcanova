@@ -17,6 +17,7 @@ import {
   buildCartEmailSubject,
   buildCartMessage,
   chargeModeLabel,
+  buildTravelerLine,
 } from '@/lib/quote';
 import { useCreateLead } from '@workspace/api-client-react';
 import {
@@ -616,20 +617,18 @@ export function ContactChannelSelector({
                       {item.startDate && (
                         <span>
                           {formatDateDisplay(item.startDate)}
-                          {item.endDate && item.endDate !== item.startDate && ` - ${formatDateDisplay(item.endDate)}`}
+                          {item.endDate && item.endDate !== item.startDate && ` – ${formatDateDisplay(item.endDate)}`}
                         </span>
                       )}
-                      {item.days > 1 && <span>{item.days}d</span>}
-                      <span>
-                        {[
-                          item.travelers.adults > 0 && `${item.travelers.adults}A`,
-                          item.travelers.children > 0 && `${item.travelers.children}N`,
-                          item.travelers.seniors > 0 && `${item.travelers.seniors}M`,
-                        ].filter(Boolean).join(' + ')}
-                      </span>
+                      <span>{item.days ?? 1}d</span>
+                      <span>{buildTravelerLine(item.travelers, lang as 'es' | 'en')}</span>
                     </div>
-                    {item.subtotal > 0 && (
+                    {(item.subtotal ?? 0) > 0 ? (
                       <p className="text-xs font-bold text-brand-gold">{formatPrice(item.subtotal)}</p>
+                    ) : (
+                      <p className="text-xs text-brand-navy/35 italic">
+                        {lang === 'es' ? 'Consultar precio' : 'Price on request'}
+                      </p>
                     )}
                   </div>
                   <div className="flex items-center gap-0.5 shrink-0 mt-0.5">
@@ -652,6 +651,21 @@ export function ContactChannelSelector({
                 <span className="text-base font-bold text-brand-navy">{formatPrice(cart.total)}</span>
               </div>
             )}
+
+            {/* Note when some items have no calculable price */}
+            {(() => {
+              const noPriceCount = cart.items.filter(i => (i.subtotal ?? 0) === 0).length;
+              if (noPriceCount === 0) return null;
+              return (
+                <div className="px-4 py-2 border-t border-brand-navy/5 bg-white">
+                  <p className="text-[11px] text-brand-navy/40 leading-relaxed">
+                    {lang === 'es'
+                      ? `${noPriceCount} servicio${noPriceCount !== 1 ? 's' : ''} requieren cotizacion manual y no se incluyen en el total.`
+                      : `${noPriceCount} service${noPriceCount !== 1 ? 's' : ''} require manual pricing and are not included in the total.`}
+                  </p>
+                </div>
+              );
+            })()}
 
             <div className="flex justify-end px-4 py-2 bg-white">
               <button onClick={clearCart} className="text-xs text-brand-navy/25 hover:text-red-400 transition-colors">

@@ -50,7 +50,10 @@ export type QuoteItem = {
   endDate?: string;
   days: number;
   travelers: TravelerBreakdown;
-  chargeMode?: ChargeMode;     // carried for message display
+  chargeMode?: ChargeMode;
+  // Stored so updateItem can recalculate without needing them re-passed from outside
+  bookingRules?: ServiceBookingRules | null;
+  servicePricing?: ServicePricing | null;
   overridePricing?: OverridePricing;
   notes?: string;
   subtotal: number;
@@ -88,7 +91,8 @@ function effectiveTravelers(
 
 /**
  * Compute subtotal from service booking rules + service pricing.
- * This is the primary calculation — it uses the DB-configured pricing model.
+ * Returns 0 when pricing is missing — this is a "Price on request" signal,
+ * NOT a silent failure. The UI and message must handle the 0 case explicitly.
  */
 export function calculateSubtotalFromRules(
   travelers: TravelerBreakdown,
@@ -111,18 +115,18 @@ export function calculateSubtotalFromRules(
     case 'per_person': {
       const t = effectiveTravelers(travelers, rules);
       return (
-        t.adults * (sp.priceAdult ?? 0) +
-        t.children * (sp.priceChild ?? 0) +
-        t.seniors * (sp.priceSenior ?? 0)
+        t.adults   * (sp.priceAdult  ?? 0) +
+        t.children * (sp.priceChild  ?? 0) +
+        t.seniors  * (sp.priceSenior ?? 0)
       );
     }
 
     case 'per_person_per_day': {
       const t = effectiveTravelers(travelers, rules);
       const perDay =
-        t.adults * (sp.priceAdult ?? 0) +
-        t.children * (sp.priceChild ?? 0) +
-        t.seniors * (sp.priceSenior ?? 0);
+        t.adults   * (sp.priceAdult  ?? 0) +
+        t.children * (sp.priceChild  ?? 0) +
+        t.seniors  * (sp.priceSenior ?? 0);
       return perDay * d;
     }
 
@@ -144,14 +148,16 @@ export function calculateSubtotalFromOverride(
   if (op.flatPrice != null && op.flatPrice > 0) {
     return op.flatPrice * d;
   }
-  const adultCost = travelers.adults * (op.adultPrice ?? 0);
-  const childCost = travelers.children * (op.childPrice ?? 0);
-  const seniorCost = travelers.seniors * (op.seniorPrice ?? 0);
+  const adultCost  = (travelers.adults   ?? 0) * (op.adultPrice  ?? 0);
+  const childCost  = (travelers.children ?? 0) * (op.childPrice  ?? 0);
+  const seniorCost = (travelers.seniors  ?? 0) * (op.seniorPrice ?? 0);
   return (adultCost + childCost + seniorCost) * d;
 }
 
 /**
  * Master subtotal: override pricing wins if provided, otherwise uses service rules.
+ * Returns 0 when no calculable pricing is available — callers must treat 0
+ * as "Price on request" rather than "free".
  */
 export function calculateSubtotal(
   travelers: TravelerBreakdown,
@@ -160,32 +166,40 @@ export function calculateSubtotal(
   sp?: ServicePricing | null,
   op?: OverridePricing | null,
 ): number {
+  // Guard: ensure all traveler fields are safe numbers
+  const t: TravelerBreakdown = {
+    adults:   Math.max(0, travelers?.adults   ?? 0),
+    children: Math.max(0, travelers?.children ?? 0),
+    seniors:  Math.max(0, travelers?.seniors  ?? 0),
+  };
+  const d = Math.max(1, days ?? 1);
+
   // Override pricing takes precedence
   if (op && hasOverridePricing(op)) {
-    return calculateSubtotalFromOverride(travelers, days, op);
+    return calculateSubtotalFromOverride(t, d, op);
   }
   // Service rules + service pricing
   if (rules && sp) {
-    return calculateSubtotalFromRules(travelers, days, rules, sp);
+    return calculateSubtotalFromRules(t, d, rules, sp);
   }
   return 0;
 }
 
 function hasOverridePricing(op: OverridePricing): boolean {
   return (
-    (op.flatPrice != null && op.flatPrice > 0) ||
-    (op.adultPrice != null && op.adultPrice > 0) ||
-    (op.childPrice != null && op.childPrice > 0) ||
+    (op.flatPrice   != null && op.flatPrice   > 0) ||
+    (op.adultPrice  != null && op.adultPrice  > 0) ||
+    (op.childPrice  != null && op.childPrice  > 0) ||
     (op.seniorPrice != null && op.seniorPrice > 0)
   );
 }
 
 export function calculateTotal(items: QuoteItem[]): number {
-  return items.reduce((sum, item) => sum + item.subtotal, 0);
+  return items.reduce((sum, item) => sum + (item.subtotal ?? 0), 0);
 }
 
 export function totalTravelers(t: TravelerBreakdown): number {
-  return t.adults + t.children + t.seniors;
+  return (t?.adults ?? 0) + (t?.children ?? 0) + (t?.seniors ?? 0);
 }
 
 // ─── Formatting ───────────────────────────────────────────────────────────────
@@ -219,6 +233,34 @@ export function chargeModeLabel(mode: ChargeMode, lang: 'es' | 'en'): string {
   return labels[mode]?.[lang] ?? mode;
 }
 
+/**
+ * Build a human-readable traveler summary string.
+ * Exported so it can be reused in UI components.
+ * Examples:
+ *   EN: "3 adults, 1 child, 1 senior"
+ *   ES: "3 adultos, 1 nino, 1 adulto mayor"
+ */
+export function buildTravelerLine(t: TravelerBreakdown, lang: 'es' | 'en'): string {
+  const adults   = Math.max(0, t?.adults   ?? 0);
+  const children = Math.max(0, t?.children ?? 0);
+  const seniors  = Math.max(0, t?.seniors  ?? 0);
+
+  const parts: string[] = [];
+  if (lang === 'es') {
+    if (adults   > 0) parts.push(`${adults} adulto${adults !== 1 ? 's' : ''}`);
+    if (children > 0) parts.push(`${children} nino${children !== 1 ? 's' : ''}`);
+    if (seniors  > 0) parts.push(`${seniors} adulto${seniors !== 1 ? 's' : ''} mayor${seniors !== 1 ? 'es' : ''}`);
+  } else {
+    if (adults   > 0) parts.push(`${adults} adult${adults !== 1 ? 's' : ''}`);
+    if (children > 0) parts.push(`${children} child${children !== 1 ? 'ren' : ''}`);
+    if (seniors  > 0) parts.push(`${seniors} senior${seniors !== 1 ? 's' : ''}`);
+  }
+  if (parts.length === 0) {
+    return lang === 'es' ? '0 viajeros' : '0 travelers';
+  }
+  return parts.join(', ');
+}
+
 // ─── localStorage ─────────────────────────────────────────────────────────────
 
 export function loadCart(): QuoteCart {
@@ -226,7 +268,19 @@ export function loadCart(): QuoteCart {
     const raw = localStorage.getItem(CART_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as QuoteCart;
-      if (Array.isArray(parsed.items)) return parsed;
+      if (Array.isArray(parsed.items)) {
+        // Migrate old items that may not have the travelers field fully populated
+        const migratedItems = parsed.items.map(item => ({
+          ...item,
+          travelers: {
+            adults:   item.travelers?.adults   ?? 0,
+            children: item.travelers?.children ?? 0,
+            seniors:  item.travelers?.seniors  ?? 0,
+          },
+          days: item.days ?? 1,
+        }));
+        return { ...parsed, items: migratedItems };
+      }
     }
   } catch {}
   return { items: [], total: 0, currency: 'USD', updatedAt: new Date().toISOString() };
@@ -248,6 +302,9 @@ export function buildCartMessage(cart: QuoteCart, lang: 'es' | 'en'): string {
   if (cart.items.length === 0) return '';
 
   const lines: string[] = [];
+  const currency = cart.currency ?? 'USD';
+  const itemsWithPrice    = cart.items.filter(i => (i.subtotal ?? 0) > 0);
+  const itemsWithoutPrice = cart.items.filter(i => (i.subtotal ?? 0) === 0);
 
   if (lang === 'es') {
     lines.push('Hola, nos interesa cotizar los siguientes servicios:');
@@ -256,34 +313,49 @@ export function buildCartMessage(cart: QuoteCart, lang: 'es' | 'en'): string {
     cart.items.forEach((item, i) => {
       lines.push(`${i + 1}. ${item.experienceName}`);
 
+      // Date / range
       if (item.startDate) {
-        let dateLine = `   Fecha: ${formatDateDisplay(item.startDate)}`;
+        const start = formatDateDisplay(item.startDate);
         if (item.endDate && item.endDate !== item.startDate) {
-          dateLine += ` al ${formatDateDisplay(item.endDate)}`;
+          lines.push(`- Fecha: ${start} al ${formatDateDisplay(item.endDate)}`);
+        } else {
+          lines.push(`- Fecha: ${start}`);
         }
-        lines.push(dateLine);
       }
 
-      if (item.days > 1) lines.push(`   Dias: ${item.days}`);
+      // Days — always shown
+      lines.push(`- Dias: ${Math.max(1, item.days ?? 1)}`);
 
-      const travelerLine = buildTravelerLine(item.travelers, 'es');
-      if (travelerLine) lines.push(`   Viajeros: ${travelerLine}`);
+      // Travelers
+      const travelerStr = buildTravelerLine(item.travelers, 'es');
+      lines.push(`- Viajeros: ${travelerStr}`);
 
+      // Pricing mode
       if (item.chargeMode) {
-        lines.push(`   Modalidad: ${chargeModeLabel(item.chargeMode, 'es')}`);
+        lines.push(`- Modalidad: ${chargeModeLabel(item.chargeMode, 'es')}`);
       }
 
-      if (item.subtotal > 0) {
-        lines.push(`   Subtotal estimado: ${formatPrice(item.subtotal, cart.currency)}`);
+      // Subtotal
+      const sub = item.subtotal ?? 0;
+      if (sub > 0) {
+        lines.push(`- Subtotal estimado: ${formatPrice(sub, currency)}`);
+      } else {
+        lines.push('- Precio: a consultar');
       }
 
-      if (item.notes) lines.push(`   Notas: ${item.notes}`);
+      if (item.notes) lines.push(`- Notas: ${item.notes}`);
 
       lines.push('');
     });
 
-    if (cart.total > 0) {
-      lines.push(`Total estimado: ${formatPrice(cart.total, cart.currency)}`);
+    // Total
+    if (itemsWithPrice.length > 0) {
+      lines.push(`Total estimado: ${formatPrice(cart.total, currency)}`);
+      if (itemsWithoutPrice.length > 0) {
+        lines.push(
+          `(+ ${itemsWithoutPrice.length} servicio${itemsWithoutPrice.length !== 1 ? 's' : ''} requieren cotizacion manual)`,
+        );
+      }
       lines.push('');
     }
 
@@ -296,34 +368,49 @@ export function buildCartMessage(cart: QuoteCart, lang: 'es' | 'en'): string {
     cart.items.forEach((item, i) => {
       lines.push(`${i + 1}. ${item.experienceName}`);
 
+      // Date / range
       if (item.startDate) {
-        let dateLine = `   Date: ${formatDateDisplay(item.startDate)}`;
+        const start = formatDateDisplay(item.startDate);
         if (item.endDate && item.endDate !== item.startDate) {
-          dateLine += ` to ${formatDateDisplay(item.endDate)}`;
+          lines.push(`- Date: ${start} to ${formatDateDisplay(item.endDate)}`);
+        } else {
+          lines.push(`- Date: ${start}`);
         }
-        lines.push(dateLine);
       }
 
-      if (item.days > 1) lines.push(`   Days: ${item.days}`);
+      // Days — always shown
+      lines.push(`- Days: ${Math.max(1, item.days ?? 1)}`);
 
-      const travelerLine = buildTravelerLine(item.travelers, 'en');
-      if (travelerLine) lines.push(`   Travelers: ${travelerLine}`);
+      // Travelers
+      const travelerStr = buildTravelerLine(item.travelers, 'en');
+      lines.push(`- Travelers: ${travelerStr}`);
 
+      // Pricing mode
       if (item.chargeMode) {
-        lines.push(`   Pricing: ${chargeModeLabel(item.chargeMode, 'en')}`);
+        lines.push(`- Pricing: ${chargeModeLabel(item.chargeMode, 'en')}`);
       }
 
-      if (item.subtotal > 0) {
-        lines.push(`   Estimated subtotal: ${formatPrice(item.subtotal, cart.currency)}`);
+      // Subtotal
+      const sub = item.subtotal ?? 0;
+      if (sub > 0) {
+        lines.push(`- Estimated subtotal: ${formatPrice(sub, currency)}`);
+      } else {
+        lines.push('- Price: on request');
       }
 
-      if (item.notes) lines.push(`   Notes: ${item.notes}`);
+      if (item.notes) lines.push(`- Notes: ${item.notes}`);
 
       lines.push('');
     });
 
-    if (cart.total > 0) {
-      lines.push(`Total estimate: ${formatPrice(cart.total, cart.currency)}`);
+    // Total
+    if (itemsWithPrice.length > 0) {
+      lines.push(`Total estimate: ${formatPrice(cart.total, currency)}`);
+      if (itemsWithoutPrice.length > 0) {
+        lines.push(
+          `(+ ${itemsWithoutPrice.length} service${itemsWithoutPrice.length !== 1 ? 's' : ''} require manual pricing)`,
+        );
+      }
       lines.push('');
     }
 
@@ -331,20 +418,6 @@ export function buildCartMessage(cart: QuoteCart, lang: 'es' | 'en'): string {
   }
 
   return lines.join('\n');
-}
-
-function buildTravelerLine(t: TravelerBreakdown, lang: 'es' | 'en'): string {
-  const parts: string[] = [];
-  if (lang === 'es') {
-    if (t.adults > 0) parts.push(`${t.adults} adulto${t.adults !== 1 ? 's' : ''}`);
-    if (t.children > 0) parts.push(`${t.children} nino${t.children !== 1 ? 's' : ''}`);
-    if (t.seniors > 0) parts.push(`${t.seniors} adulto${t.seniors !== 1 ? 's' : ''} mayor${t.seniors !== 1 ? 'es' : ''}`);
-  } else {
-    if (t.adults > 0) parts.push(`${t.adults} adult${t.adults !== 1 ? 's' : ''}`);
-    if (t.children > 0) parts.push(`${t.children} child${t.children !== 1 ? 'ren' : ''}`);
-    if (t.seniors > 0) parts.push(`${t.seniors} senior${t.seniors !== 1 ? 's' : ''}`);
-  }
-  return parts.join(', ');
 }
 
 // ─── Contact URL builders ─────────────────────────────────────────────────────

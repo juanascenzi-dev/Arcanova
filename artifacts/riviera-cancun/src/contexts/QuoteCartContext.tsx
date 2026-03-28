@@ -15,15 +15,19 @@ import {
 
 // ─── Context shape ────────────────────────────────────────────────────────────
 
-type AddItemPayload = Omit<QuoteItem, 'id' | 'subtotal'> & {
-  bookingRules?: ServiceBookingRules | null;
-  servicePricing?: ServicePricing | null;
-};
+/**
+ * AddItemPayload — all fields needed to create a new QuoteItem.
+ * bookingRules and servicePricing are now part of QuoteItem itself so they
+ * persist in localStorage and are available for future recalculation on edit.
+ */
+type AddItemPayload = Omit<QuoteItem, 'id' | 'subtotal'>;
 
-type UpdateItemPayload = Partial<Omit<QuoteItem, 'id' | 'subtotal'>> & {
-  bookingRules?: ServiceBookingRules | null;
-  servicePricing?: ServicePricing | null;
-};
+/**
+ * UpdateItemPayload — any subset of item fields to change.
+ * If bookingRules / servicePricing are omitted, the values already stored
+ * on the item are used for recalculation (no silent 0 reset).
+ */
+type UpdateItemPayload = Partial<Omit<QuoteItem, 'id' | 'subtotal'>>;
 
 type QuoteCartContextType = {
   cart: QuoteCart;
@@ -35,18 +39,6 @@ type QuoteCartContextType = {
 };
 
 const QuoteCartContext = createContext<QuoteCartContextType | undefined>(undefined);
-
-// ─── Subtotal helper ──────────────────────────────────────────────────────────
-
-function computeSubtotal(
-  travelers: TravelerBreakdown,
-  days: number,
-  bookingRules?: ServiceBookingRules | null,
-  servicePricing?: ServicePricing | null,
-  overridePricing?: OverridePricing | null,
-): number {
-  return calculateSubtotal(travelers, days, bookingRules, servicePricing, overridePricing);
-}
 
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
@@ -66,34 +58,42 @@ export function QuoteCartProvider({ children }: { children: ReactNode }) {
     };
   }
 
+  /**
+   * Add a new item. bookingRules and servicePricing from the payload are
+   * stored in the item so they're available when the item is later edited.
+   */
   const addItem = useCallback((payload: AddItemPayload) => {
-    const { bookingRules, servicePricing, ...itemData } = payload;
-    const subtotal = computeSubtotal(
-      itemData.travelers,
-      itemData.days,
-      bookingRules,
-      servicePricing,
-      itemData.overridePricing,
+    const subtotal = calculateSubtotal(
+      payload.travelers,
+      payload.days,
+      payload.bookingRules,
+      payload.servicePricing,
+      payload.overridePricing,
     );
     const newItem: QuoteItem = {
-      ...itemData,
+      ...payload,
       id: crypto.randomUUID(),
       subtotal,
     };
     setCart(prev => makeCart([...prev.items, newItem]));
   }, []);
 
+  /**
+   * Update an item. The merged item (stored values + updates) is used for
+   * recalculation, so even if bookingRules / servicePricing are not re-passed
+   * in the update payload, the stored ones are preserved and subtotal stays correct.
+   */
   const updateItem = useCallback((id: string, updates: UpdateItemPayload) => {
-    const { bookingRules, servicePricing, ...itemUpdates } = updates;
     setCart(prev => {
       const items = prev.items.map(item => {
         if (item.id !== id) return item;
-        const merged = { ...item, ...itemUpdates };
-        const subtotal = computeSubtotal(
+        // Merge: stored values are the base; updates override specific fields
+        const merged: QuoteItem = { ...item, ...updates, id: item.id };
+        const subtotal = calculateSubtotal(
           merged.travelers,
           merged.days,
-          bookingRules ?? undefined,
-          servicePricing ?? undefined,
+          merged.bookingRules,    // from stored item (or updated if provided)
+          merged.servicePricing,  // from stored item (or updated if provided)
           merged.overridePricing,
         );
         return { ...merged, subtotal };

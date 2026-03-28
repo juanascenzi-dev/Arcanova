@@ -1,0 +1,294 @@
+Necesito una nueva pasada de debugging y hardening sobre el carrito/cotizador de `artifacts/riviera-cancun`.
+
+## Problemas detectados
+
+### 1. El mensaje de WhatsApp está incompleto
+
+Hoy el mensaje puede salir así:
+
+* no aclara bien la cantidad de personas total
+* no siempre muestra el detalle por tipo correctamente
+* no siempre muestra la fecha completa
+* no siempre muestra el rango “desde qué día hasta qué día”
+* no siempre muestra cuántos días son en total
+* a veces repite items pero con información parcial
+* a veces el subtotal aparece en unos items y en otros no
+
+Quiero que el mensaje quede completo, consistente y legible.
+
+### 2. El cálculo/render falla con children + seniors
+
+Estuve probando y veo que:
+
+* con `adults` funciona bien
+* cuando agrego `senior` y `children`, empiezan inconsistencias
+* algunos ítems quedan sin subtotal
+* algunos no entran bien al total
+* y el mensaje tampoco refleja bien esa combinación
+
+Quiero una auditoría completa de esa lógica.
+
+---
+
+## Objetivo
+
+Dejar robusto todo el flujo de quote para que:
+
+* cualquier combinación de viajeros funcione
+* el subtotal se calcule siempre correctamente cuando haya pricing
+* el total sea correcto
+* el mensaje de WhatsApp refleje exactamente lo cargado por el usuario
+
+---
+
+## 1. Arreglar el mensaje de WhatsApp
+
+Quiero rehacer el generador de mensaje para que por cada item incluya, cuando exista:
+
+* nombre del servicio
+* fecha simple o rango de fechas
+* formato:
+
+  * `Date: DD/MM/YYYY`
+  * o `Date: DD/MM/YYYY to DD/MM/YYYY`
+* cantidad total de días
+
+  * `Days: X`
+* cantidad de viajeros por tipo
+
+  * adults
+  * children
+  * seniors
+* opcionalmente total de viajeros
+* pricing rule si ayuda
+* subtotal estimado si es calculable
+
+### Formato esperado por item
+
+Ejemplo deseado:
+
+```txt
+1. Extreme Bungee Jumping
+- Date: 18/03/2026 to 01/04/2026
+- Days: 10
+- Travelers: 3 adults, 1 senior
+- Estimated subtotal: USD 150
+```
+
+Otro ejemplo:
+
+```txt
+2. ATV Jungle Adventure
+- Date: 18/03/2026 to 01/04/2026
+- Days: 10
+- Travelers: 3 adults, 1 senior
+- Pricing: fixed group price
+- Estimated subtotal: USD 180
+```
+
+### Reglas
+
+* si hay `startDate` y `endDate`, mostrar ambos
+* si además hay `days`, mostrarlo siempre
+* si solo hay una fecha, mostrar una sola fecha
+* si no hay fecha, no inventarla
+* no omitir `children` ni `seniors`
+* no omitir ítems del mensaje
+* no repetir información de forma inconsistente
+* el total final debe coincidir con la suma de subtotales calculables
+
+---
+
+## 2. Revisar completamente la lógica de travelers
+
+Auditar toda la cadena:
+
+* estado del form
+* creación del `QuoteItem`
+* persistencia en carrito/context
+* recálculo de subtotal
+* render en UI
+* generador de mensaje
+
+### Sospecha principal
+
+Hay un bug al calcular o serializar combinaciones que incluyen:
+
+* `children`
+* `seniors`
+
+Quiero revisar especialmente:
+
+* defaults en `TravelerBreakdown`
+* suma total de viajeros
+* campos undefined/null
+* fallback de precios:
+
+  * `priceAdult`
+  * `priceChild`
+  * `priceSenior`
+* funciones que filtran valores falsy
+* formateadores que solo contemplan adults
+* cálculo de subtotal con combinaciones mixtas
+
+### Casos a validar sí o sí
+
+1. solo adults
+2. adults + children
+3. adults + seniors
+4. children + seniors sin adults
+5. adults + children + seniors
+6. 1 adult
+7. 1 child
+8. 1 senior
+9. 0 adults + 1 child + 1 senior
+10. cantidades grandes mezcladas
+
+No quiero que ninguna combinación válida deje el item “mudo” o sin subtotal.
+
+---
+
+## 3. Regla de subtotal / estado del item
+
+Todo item del quote debe quedar en uno de estos estados visibles:
+
+### Estado A
+
+Tiene subtotal calculable:
+
+* mostrar `USD XXX`
+* sumar al total
+
+### Estado B
+
+No tiene subtotal calculable:
+
+* mostrar claramente `Price on request` / `Consultar precio`
+* NO quedar vacío
+* y si no suma al total, explicarlo visualmente
+
+No quiero ítems silenciosos sin texto de estado.
+
+---
+
+## 4. UI del quote
+
+En el bloque `Your quote`, asegurar que cada item muestre información consistente:
+
+* nombre
+* fecha o rango si existe
+* días si existen
+* breakdown de viajeros correcto
+* subtotal o estado comercial claro
+
+### Importante
+
+Hoy veo items que muestran solo algo como:
+
+* `1A`
+* o `1N + 1M`
+
+Eso es demasiado críptico.
+
+Quiero que evalúen si conviene mantener esa forma abreviada o pasar a algo más legible, por ejemplo:
+
+* `1 adult`
+* `1 child, 1 senior`
+* `2 adults, 1 child, 1 senior`
+
+Si quieren mantener abreviaciones en UI compacta, al menos que el mensaje de WhatsApp use siempre la versión completa.
+
+---
+
+## 5. Total estimate
+
+Validar que:
+
+* el total refleje exactamente la suma de todos los ítems calculables
+* no omita servicios por bug de travelers
+* si hay items “Price on request”, el total siga siendo entendible
+
+Opcionalmente, si hay items no sumados:
+
+* mostrar una nota del estilo:
+
+  * `1 item not included in total`
+  * o `Some services require manual pricing`
+
+---
+
+## 6. Archivos/zonas a revisar
+
+* `src/lib/quote.ts`
+* generador de mensaje de WhatsApp
+* `QuoteCartContext`
+* componente `Your quote`
+* lógica de add/update item
+* helpers de travelers/display
+* cualquier mapping de `adults/children/seniors`
+
+---
+
+## 7. QA requerido
+
+Probar explícitamente:
+
+### Mensajes
+
+* item con una fecha
+* item con rango de fechas
+* item con days
+* item con adults + children + seniors
+* múltiples items mezclados
+* total final correcto
+
+### Cálculo
+
+* per_person
+* per_group_fixed
+* con children
+* con seniors
+* combinaciones mixtas
+* items editados
+* items duplicados
+* remove + re-add
+
+### UI
+
+* quote compacto
+* modal
+* WhatsApp final
+* consistencia entre UI y mensaje
+
+---
+
+## Entregables
+
+1. causa raíz concreta del bug con `children` y `seniors`
+2. archivos modificados
+3. fix implementado
+4. nuevo formato final del mensaje de WhatsApp
+5. confirmación de que fechas + rango + days + travelers salen correctamente
+6. confirmación de que ninguna combinación válida deja items sin subtotal silencioso
+
+## Criterios de aceptación
+
+* WhatsApp incluye fechas correctamente
+* WhatsApp incluye rango correctamente
+* WhatsApp incluye days correctamente
+* WhatsApp incluye travelers por tipo correctamente
+* `children` y `seniors` ya no rompen subtotal ni total
+* el quote no deja items mudos
+* el total final coincide con los subtotales visibles
+
+## Muy importante
+
+No hagas PR ni merge automático.
+Generá también un `.txt` en `/docs/dev-logs/` con:
+
+* diagnóstico
+* causa raíz
+* archivos tocados
+* combinaciones probadas
+* riesgos pendientes
+* próximos pasos sugeridos
