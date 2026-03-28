@@ -1,0 +1,226 @@
+Necesito una nueva iteración para corregir definitivamente los canales de contacto del proyecto `artifacts/riviera-cancun`.
+
+## Problemas actuales
+
+### 1. Email / Gmail sigue sin funcionar
+
+Aunque hubo un fix previo, al usar la opción de email sigue sin abrir correctamente el cliente de correo o no hace nada útil.
+
+Quiero que se revise y se corrija de forma robusta.
+
+### 2. Facebook hoy manda al perfil
+
+Eso no me sirve como flujo principal.
+Quiero que el canal de Facebook:
+
+* intente llevar a **Messenger** o al canal más directo posible,
+* y que el mensaje de la cotización/interés quede preparado de la forma más cercana posible.
+
+### 3. Footer incompleto
+
+Quiero que en el pie de página estén claros y funcionales los canales de contacto:
+
+* Facebook / Messenger
+* Email
+* otras redes si ya existen
+* y que todo quede alineado con la configuración real del negocio
+
+---
+
+## Objetivo funcional
+
+### Email
+
+Quiero que al tocar “Email”:
+
+* abra correctamente el cliente de correo
+* complete destinatario
+* complete asunto
+* complete cuerpo con el resumen de la cotización o interés
+* funcione tanto desde el flujo del carrito/cotizador como desde accesos generales de contacto si existen
+
+### Facebook / Messenger
+
+Quiero priorizar este orden:
+
+1. **Messenger directo** si existe un enlace confiable del negocio
+2. Si no se puede abrir Messenger con mensaje prellenado de forma estable:
+
+   * abrir el destino correcto del negocio (Messenger o página)
+   * copiar automáticamente el mensaje al portapapeles
+   * mostrar feedback claro: “Mensaje copiado, pegalo en Messenger/Facebook”
+3. No quiero que mande simplemente a un perfil genérico que no sirve para conversar
+
+### Footer
+
+Quiero que el footer muestre:
+
+* iconos o links correctos a redes
+* email visible/clicable
+* canal de Facebook/Messenger correcto
+* y que todo salga de una configuración centralizada de contacto, no hardcodeado en varios componentes
+
+---
+
+## Alcance técnico
+
+### 1. Revisar y corregir el email
+
+Auditar:
+
+* generación de `mailto:`
+* encoding del `subject`
+* encoding del `body`
+* uso de `a.click()`
+* comportamiento en popup/modal/iframe preview
+* si algún close del modal o handler está cortando la acción
+* si el email configurado es correcto en todos los lugares
+
+Quiero que el canal email funcione desde:
+
+* botón del carrito/cotizador
+* cualquier CTA general si existe
+* footer
+
+### 2. Centralizar configuración de contacto
+
+Crear o consolidar una fuente única tipo:
+
+```ts
+export const CONTACT_CHANNELS = {
+  email: "info.ixchelexperience@yahoo.com",
+  whatsapp: "5491138475846",
+  facebookPageUrl: "...",
+  messengerUrl: "...",
+  instagramUrl: "...",
+};
+```
+
+Todos los componentes deben consumir esta misma fuente:
+
+* carrito
+* botón flotante
+* footer
+* modales/contacto
+* cualquier CTA secundario
+
+### 3. Corregir estrategia Facebook/Messenger
+
+Revisar exactamente qué dato existe hoy:
+
+* perfil personal
+* página
+* enlace `m.me`
+* share link
+* URL incorrecta
+
+Quiero implementar la mejor estrategia posible según el dato disponible:
+
+#### Caso ideal
+
+* existe `m.me/...` o link de Messenger válido del negocio
+* abrir ese link
+
+#### Caso fallback
+
+* copiar mensaje al portapapeles
+* abrir página correcta del negocio
+* mostrar un estado o mensaje visual claro explicando qué hacer
+
+No quiero redirecciones rotas ni páginas de error.
+
+### 4. Integrar el footer
+
+Revisar el footer actual y agregar/ordenar:
+
+* Email
+* Facebook / Messenger
+* WhatsApp si corresponde
+* otras redes reales del negocio
+
+Requisitos:
+
+* links visibles y clicables
+* nombres/íconos correctos
+* consistencia visual con el sitio
+* mobile friendly
+* no duplicar configuraciones
+
+### 5. Mensajes
+
+Mantener el sistema actual de mensajes del carrito, pero asegurar que:
+
+* email use el resumen correcto
+* Facebook/Messenger use el mismo resumen o una versión adaptada
+* no haya caracteres rotos
+* no haya mensajes vacíos
+
+---
+
+## QA requerido
+
+### Email
+
+Validar:
+
+* click desde carrito
+* click desde footer
+* subject correcto
+* body correcto
+* destinatario correcto
+* que no cierre el popup “sin hacer nada”
+
+### Facebook / Messenger
+
+Validar:
+
+* que no lleve a perfil incorrecto
+* que no abra error
+* que priorice Messenger si existe
+* que el fallback copie el mensaje si no se puede prellenar
+
+### Footer
+
+Validar:
+
+* links correctos
+* mobile
+* desktop
+* consistencia con datos de contacto usados en el resto del sitio
+
+---
+
+## Entregables
+
+1. Código implementado
+2. Lista de archivos modificados
+3. Ubicación de la configuración centralizada de contacto
+4. Explicación de por qué email seguía fallando y cómo quedó resuelto
+5. Explicación de qué estrategia final se usó para Facebook/Messenger
+6. Confirmación de que footer, carrito y demás CTAs usan la misma fuente de datos
+7. Ejemplos de links finales generados para:
+
+   * Email
+   * WhatsApp
+   * Facebook/Messenger
+
+## Criterios de aceptación
+
+* Email funciona de verdad
+* Facebook no manda a un destino inútil o roto
+* Messenger se usa si está disponible
+* Si no se puede prellenar Messenger/Facebook, hay fallback con copia al portapapeles
+* El footer muestra y usa correctamente redes + email
+* No hay datos de contacto hardcodeados en múltiples lugares
+
+## Muy importante
+
+No hagas PR ni merge automático.
+Generá también un `.txt` en `/docs/dev-logs/` con:
+
+* diagnóstico
+* archivos tocados
+* causa raíz
+* solución aplicada
+* riesgos pendientes
+* próximos pasos sugeridos

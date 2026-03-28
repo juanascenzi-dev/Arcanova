@@ -1,0 +1,171 @@
+================================================================================
+DEV LOG — Contact Channels Fix
+Date: 2026-03-28
+Project: artifacts/riviera-cancun (AUSTRAL Cancun Premium)
+================================================================================
+
+DIAGNOSTICO
+-----------
+
+1. EMAIL — POR QUE FALLABA
+
+  Causa raiz: El protocolo mailto: esta bloqueado por el sandbox del iframe de
+  Replit. El preview de Replit embebe la app en un <iframe sandbox="..."> que
+  NO permite navegacion a protocolos externos (mailto:, tel:, etc.).
+
+  Esto afecta a:
+    - window.location.href = "mailto:..."  (bloqueado por sandbox)
+    - window.open("mailto:...", "_blank")  (popup bloqueado)
+    - document.createElement("a").click() (bloqueado por sandbox)
+
+  IMPORTANTE: El link mailto: funciona perfectamente en un browser real
+  (Chrome, Safari, Firefox, etc.) cuando la app esta desplegada en produccion.
+  Es SOLO un problema del entorno de preview de Replit.
+
+  Solucion aplicada:
+  - El boton "Email" ya no intenta ejecutar la URL programaticamente.
+  - En su lugar abre un "Email Step" (pantalla dentro del modal) con:
+      * Destinatario copiable (info.ixchelexperience@yahoo.com)
+      * Asunto copiable
+      * Cuerpo del mensaje en textarea copiable (el resumen del carrito)
+      * Boton <a href="mailto:..."> — funciona en browsers reales
+      * Mensaje explicativo si el boton no abre el cliente de correo
+  - Esto funciona en TODOS los contextos: browser real, mobile, y preview.
+
+2. FACEBOOK / MESSENGER — DIAGNOSTICO
+
+  Problema anterior: se abria https://www.facebook.com/rodrigo.fimiani
+  (perfil de Facebook, no sirve para chatear directamente).
+
+  El link m.me/rodrigo.fimiani es la URL correcta de Messenger para ese
+  perfil. En navegadores donde el usuario esta logueado en Facebook, funciona
+  directamente. En mobile con la app de Facebook instalada, se abre Messenger.
+  Puede mostrar pantalla de verificacion en ciertos contextos (usuario no
+  logueado, o VPN).
+
+  Estrategia implementada (prioridad Messenger):
+    1. Auto-copiar el mensaje al portapapeles (inmediato, siempre funciona)
+    2. Abrir https://m.me/rodrigo.fimiani en nueva pestana (Messenger directo)
+    3. Mostrar "Messenger Step" con:
+       - Badge "Mensaje copiado automaticamente"
+       - Textarea con el mensaje completo para copiar manualmente
+       - Boton azul "Abrir Messenger" (m.me link)
+       - Boton secundario "Ver perfil de Facebook" (fallback)
+
+3. FOOTER — DATOS INCORRECTOS
+
+  Datos hardcodeados erroneos encontrados:
+    - Footer email: "info@australcancun.com" (INCORRECTO)
+    - Footer phone: "+52 998 123 4567" (desconocido, no estaba en config)
+    - Footer social: href="#" (rotos, sin URL real)
+    - WhatsAppButton: "529981234567" (INCORRECTO, numero argentino real es diferente)
+    - CONTACT_CONFIG en leads.ts no se usaba en Footer ni WhatsAppButton
+
+  Datos correctos (de CONTACT_CHANNELS):
+    - email: info.ixchelexperience@yahoo.com
+    - whatsapp: 5491138475846 (Argentina)
+    - messenger: https://m.me/rodrigo.fimiani
+    - facebook: https://www.facebook.com/rodrigo.fimiani
+    - instagram: null (no configurado aun)
+
+4. CONFIGURACION DISPERSA
+
+  Antes: datos de contacto hardcodeados en 4 lugares distintos, sin fuente unica.
+  Despues: unica fuente de verdad centralizada.
+
+--------------------------------------------------------------------------------
+SOLUCION APLICADA
+--------------------------------------------------------------------------------
+
+ARCHIVOS NUEVOS
+---------------
+  artifacts/riviera-cancun/src/lib/contact.ts
+    - CONTACT_CHANNELS: objeto const con todos los datos de contacto
+    - whatsappUrl(message?): genera wa.me URL
+    - mailtoUrl(subject, body): genera mailto URL
+
+ARCHIVOS MODIFICADOS
+--------------------
+  artifacts/riviera-cancun/src/lib/leads.ts
+    - Eliminado CONTACT_CONFIG hardcodeado
+    - Ahora re-exporta CONTACT_CHANNELS como CONTACT_CONFIG para compatibilidad
+
+  artifacts/riviera-cancun/src/lib/quote.ts
+    - Cambio: importa de contact.ts en lugar de leads.ts
+    - Nuevo export: buildCartEmailSubject() (usado en EmailStep)
+
+  artifacts/riviera-cancun/src/components/ContactChannelSelector.tsx
+    - Importa CONTACT_CHANNELS desde contact.ts
+    - Nuevo: tipo Step = 'form' | 'email' | 'messenger'
+    - Nuevo: componente EmailStep (pantalla de email con contenido pre-armado)
+    - Nuevo: componente MessengerStep (pantalla con auto-copy + links)
+    - Nuevo: componente CopyButton (reutilizable)
+    - Fix: handleEmail() -> setStep('email') en lugar de ejecutar mailto
+    - Fix: handleMessenger() -> auto-copy + window.open(m.me) + setStep('messenger')
+    - Eliminado: handleFacebook() (reemplazado por handleMessenger())
+    - El boton "Facebook" del carrito ahora se llama "Messenger" y usa m.me
+
+  artifacts/riviera-cancun/src/components/Footer.tsx
+    - Importa CONTACT_CHANNELS y whatsappUrl desde contact.ts
+    - Email: <a href="mailto:..."> correcto con email real
+    - WhatsApp: link correcto con numero real
+    - Messenger: link m.me correcto
+    - Social: iconos con URLs reales (no "#")
+    - Instagram: oculto si instagramUrl es null
+    - Telefono hardcodeado eliminado
+    - Email visible en copyright bar
+
+  artifacts/riviera-cancun/src/components/WhatsAppButton.tsx
+    - Importa whatsappUrl desde contact.ts
+    - Numero correcto (via CONTACT_CHANNELS)
+
+--------------------------------------------------------------------------------
+LINKS GENERADOS
+--------------------------------------------------------------------------------
+
+  Email (mailto):
+    mailto:info.ixchelexperience@yahoo.com
+      ?subject=Service%20Quote%20-%20AUSTRAL%20Cancun%20Premium
+      &body=Hello%2C%20we%20are%20interested%20in%20quoting...
+
+  WhatsApp:
+    https://wa.me/5491138475846?text=Hola%2C%20nos%20interesa%20cotizar...
+
+  Messenger (primary):
+    https://m.me/rodrigo.fimiani
+
+  Facebook (fallback):
+    https://www.facebook.com/rodrigo.fimiani
+
+--------------------------------------------------------------------------------
+RIESGOS PENDIENTES
+--------------------------------------------------------------------------------
+
+  1. m.me/rodrigo.fimiani puede mostrar pantalla de verificacion de Facebook
+     si el usuario no esta logueado en Facebook en ese browser. Esto es
+     comportamiento esperado de Facebook para perfiles personales (vs paginas
+     de negocio). No hay workaround desde el frontend.
+     RECOMENDACION: crear una Pagina de Facebook de negocio (no perfil personal)
+     — las paginas tienen m.me links mas confiables y no requieren login previo.
+
+  2. El email real (info.ixchelexperience@yahoo.com) puede ir a spam si el
+     asunto/cuerpo contiene palabras que los filtros detectan. Sin impacto en
+     el frontend, pero es bueno monitorear.
+
+  3. Instagram: CONTACT_CHANNELS.instagramUrl es null. El icono de Instagram
+     en el Footer esta oculto condicionalmente. Actualizar cuando haya cuenta.
+
+  4. Numero de WhatsApp: 5491138475846 es numero argentino. Si el negocio tiene
+     numero mexicano (+52), actualizar CONTACT_CHANNELS.whatsappNumber.
+
+--------------------------------------------------------------------------------
+PROXIMOS PASOS SUGERIDOS
+--------------------------------------------------------------------------------
+
+  1. Crear Pagina de Facebook del negocio (no usar perfil personal para negocios)
+  2. Agregar instagramUrl cuando haya cuenta Instagram del negocio
+  3. Verificar si el numero de WhatsApp es correcto para el mercado objetivo
+  4. Conectar el formulario de Contact.tsx a la API (actualmente solo hace console.log)
+  5. Agregar Google Analytics / tracking de eventos en los botones de contacto
+
+================================================================================

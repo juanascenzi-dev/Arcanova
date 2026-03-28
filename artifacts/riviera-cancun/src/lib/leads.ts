@@ -11,11 +11,8 @@ export interface Lead {
 
 const STORAGE_KEY = 'austral_leads';
 
-export const CONTACT_CONFIG = {
-  whatsappNumber: '5491138475846',
-  email: 'info.ixchelexperience@yahoo.com',
-  facebookPage: 'https://www.facebook.com/rodrigo.fimiani',
-};
+// Re-export from the single source of truth — do not hardcode here.
+export { CONTACT_CHANNELS as CONTACT_CONFIG } from '@/lib/contact';
 
 export function saveLead(lead: Omit<Lead, 'id' | 'timestamp'>): Lead {
   const leads = getLeads();

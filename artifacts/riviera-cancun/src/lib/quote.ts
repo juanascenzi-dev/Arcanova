@@ -1,4 +1,4 @@
-import { CONTACT_CONFIG } from '@/lib/leads';
+import { CONTACT_CHANNELS } from '@/lib/contact';
 
 // ─── Re-export DB booking rule types for frontend use ─────────────────────────
 
@@ -351,14 +351,17 @@ function buildTravelerLine(t: TravelerBreakdown, lang: 'es' | 'en'): string {
 
 export function buildCartWhatsAppUrl(cart: QuoteCart, lang: 'es' | 'en'): string {
   const msg = buildCartMessage(cart, lang);
-  return `https://wa.me/${CONTACT_CONFIG.whatsappNumber}?text=${encodeURIComponent(msg)}`;
+  return `https://wa.me/${CONTACT_CHANNELS.whatsappNumber}?text=${encodeURIComponent(msg)}`;
+}
+
+export function buildCartEmailSubject(lang: 'es' | 'en'): string {
+  return lang === 'es'
+    ? 'Cotizacion de servicios - AUSTRAL Cancun Premium'
+    : 'Service Quote - AUSTRAL Cancun Premium';
 }
 
 export function buildCartEmailUrl(cart: QuoteCart, lang: 'es' | 'en'): string {
-  const subject =
-    lang === 'es'
-      ? 'Cotizacion de servicios - AUSTRAL Cancun Premium'
-      : 'Service Quote - AUSTRAL Cancun Premium';
+  const subject = buildCartEmailSubject(lang);
   const body = buildCartMessage(cart, lang);
-  return `mailto:${CONTACT_CONFIG.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  return `mailto:${CONTACT_CHANNELS.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
