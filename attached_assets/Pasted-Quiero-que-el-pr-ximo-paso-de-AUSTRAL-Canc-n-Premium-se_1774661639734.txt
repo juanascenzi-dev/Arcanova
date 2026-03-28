@@ -1,0 +1,70 @@
+Quiero que el próximo paso de AUSTRAL Cancún Premium sea desacoplar del código toda la configuración comercial y de contacto que Rodri debería poder editar sin tocar componentes.
+
+Contexto:
+
+* Ya existe `/admin`
+* Experiences ya funciona como módulo CMS real
+* Leads ya se guardan en PostgreSQL y se gestionan desde `/admin`
+* El negocio depende de canales directos: WhatsApp, Email, Facebook
+* No quiero seguir teniendo datos comerciales importantes hardcodeados en el frontend
+
+Objetivo:
+crear un módulo de **site settings** editable desde `/admin` para centralizar la configuración global del sitio.
+
+## Lo que quiero que soporte como mínimo
+
+### Contacto y canales
+
+* whatsapp_number
+* contact_email
+* facebook_page_url
+* facebook_messenger_url
+* instagram_url (si conviene dejarlo preparado)
+* business_name
+
+### Copy comercial básico
+
+* CTA principal navbar
+* CTA principal hero
+* texto corto de contacto
+* texto aclarando que las reservas se coordinan por contacto directo
+
+### Datos visibles globales
+
+* stats del hero
+* datos de footer
+* teléfonos o medios de contacto si aplica
+
+## Requisitos técnicos
+
+1. Diseñá un modelo persistente real para settings globales.
+2. Usá la infraestructura ya existente (backend/API/PostgreSQL).
+3. El sitio público debe leer esos settings reales.
+4. `/admin` debe permitir editarlos de forma clara.
+5. No quiero hardcodes de contacto repartidos por componentes.
+6. Mantener compatibilidad con el sistema i18n cuando corresponda.
+7. Si algunos settings deben ser multiidioma y otros no, separalos correctamente.
+
+## Requisitos de UX admin
+
+* una sección nueva en `/admin`, por ejemplo “Settings”
+* formularios claros
+* validación seria
+* feedback de guardado
+* no sobrecomplicar la interfaz
+
+## Entregables
+
+1. modelo de datos propuesto para site settings
+2. endpoints necesarios
+3. integración del frontend público con esos settings
+4. panel admin para editarlos
+5. archivos creados/modificados
+6. cómo probar el flujo completo
+7. lista de hardcodes eliminados o centralizados
+
+Importante:
+
+* priorizar settings comerciales y operativos antes que editar secciones más decorativas
+* no rehacer el proyecto
+* construir una base sólida para que Rodri dependa menos del código
