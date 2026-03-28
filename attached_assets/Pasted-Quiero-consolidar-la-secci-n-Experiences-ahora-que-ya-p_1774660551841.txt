@@ -1,0 +1,88 @@
+Quiero consolidar la sección Experiences ahora que ya persiste en PostgreSQL y se edita desde `/admin`.
+
+Objetivo:
+dejar Experiences como un módulo CMS sólido, completo y mantenible antes de expandir el admin a otras secciones.
+
+## Lo que quiero revisar e implementar
+
+### 1. Modelo de datos
+
+Revisá la tabla `experiences` y asegurate de que soporte correctamente estos campos:
+
+* id
+* slug
+* visible
+* sort_order
+* category
+* tag
+* image
+* title (multiidioma)
+* desc (multiidioma)
+* includes (multiidioma)
+* created_at
+* updated_at
+
+Si alguno no existe, proponé la migración e implementala de forma prolija.
+
+### 2. Validación backend
+
+Fortalecé el endpoint `PATCH /api/experiences/:id` para validar:
+
+* shape correcta de los campos JSONB
+* idiomas permitidos
+* strings vacíos o demasiado cortos
+* URLs inválidas de imagen
+* categorías inválidas
+* sort_order inválido
+* campos no permitidos
+
+No quiero un PATCH permisivo que acepte cualquier cosa.
+
+### 3. Admin editor
+
+Extendé el editor de Experiences en `/admin` para que Rodri pueda editar también:
+
+* category
+* tag
+* sort_order
+* visible
+* includes por idioma si es viable
+* slug solo si realmente tiene sentido editarlo; si no, dejalo bloqueado
+
+Quiero que el editor siga siendo visual y simple.
+
+### 4. UX admin
+
+Mejoras deseadas:
+
+* feedback claro de guardado exitoso
+* errores claros si falla el PATCH
+* prevenir doble submit
+* preview razonable de la imagen
+* si cambia el orden, que el listado refleje correctamente el nuevo orden
+
+### 5. Integridad
+
+Quiero que la home pública y el admin sigan leyendo exactamente la misma fuente real.
+No quiero volver a hardcodes ni a localStorage para este módulo.
+
+## Entregables
+
+1. diagnóstico del estado actual del módulo Experiences
+2. migraciones o cambios de schema realizados
+3. validaciones agregadas
+4. mejoras del editor admin
+5. archivos modificados
+6. cómo probar:
+
+   * editar
+   * guardar
+   * ver reflejado en la home
+   * comprobar orden y visibilidad
+7. pendientes o riesgos
+
+Importante:
+
+* no expandir todavía a Hero/About/Testimonials
+* primero dejar Experiences bien cerrado
+* priorizar robustez y mantenibilidad

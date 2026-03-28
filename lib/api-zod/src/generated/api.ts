@@ -19,16 +19,35 @@ export const HealthCheckResponse = zod.object({
  * Returns experiences ordered by sort_order. Hidden experiences are included (clients should filter by visible).
  * @summary List all experiences
  */
+export const listExperiencesResponsePriceMin = 0;
+
 export const ListExperiencesResponseItem = zod.object({
   id: zod.string().describe("Stable semantic ID (e.g. 'yacht', 'atv')"),
-  sortOrder: zod.number(),
-  visible: zod.boolean(),
-  tagType: zod.string(),
-  category: zod.array(zod.string()),
-  imageUrl: zod.string(),
-  fallbackEmoji: zod.string(),
-  price: zod.number(),
-  durationHours: zod.string(),
+  slug: zod
+    .string()
+    .describe("URL-friendly slug (e.g. 'premium-private-yacht')"),
+  sortOrder: zod.number().describe("Display order (0-999)"),
+  visible: zod.boolean().describe("Whether experience is visible to public"),
+  tagType: zod.enum([
+    "bestSeller",
+    "adventure",
+    "extreme",
+    "cultural",
+    "comfort",
+    "planB",
+  ]),
+  category: zod
+    .array(zod.enum(["adventure", "relax", "cultural"]))
+    .describe("One or more categories"),
+  imageUrl: zod.string().url(),
+  fallbackEmoji: zod
+    .string()
+    .describe("Unicode emoji used if image fails to load"),
+  price: zod
+    .number()
+    .min(listExperiencesResponsePriceMin)
+    .describe("Price in USD"),
+  durationHours: zod.string().describe("Duration string (e.g. '6-8', '3-4')"),
   title: zod
     .record(zod.string(), zod.string())
     .describe(
@@ -42,6 +61,7 @@ export const ListExperiencesResponseItem = zod.object({
   includes: zod
     .record(zod.string(), zod.array(zod.string()))
     .describe("Per-language string arrays. Keys are language codes."),
+  createdAt: zod.date(),
   updatedAt: zod.date(),
 });
 export const ListExperiencesResponse = zod.array(ListExperiencesResponseItem);
@@ -54,11 +74,30 @@ export const UpdateExperienceParams = zod.object({
   id: zod.coerce.string(),
 });
 
+export const updateExperienceBodyPriceMin = 0;
+
 export const UpdateExperienceBody = zod
   .object({
+    slug: zod.string().optional().describe("URL-friendly slug"),
+    sortOrder: zod.number().optional().describe("New display order"),
     visible: zod.boolean().optional(),
-    imageUrl: zod.string().optional(),
-    sortOrder: zod.number().optional(),
+    tagType: zod
+      .enum([
+        "bestSeller",
+        "adventure",
+        "extreme",
+        "cultural",
+        "comfort",
+        "planB",
+      ])
+      .optional(),
+    category: zod
+      .array(zod.enum(["adventure", "relax", "cultural"]))
+      .optional(),
+    imageUrl: zod.string().url().optional(),
+    fallbackEmoji: zod.string().optional(),
+    price: zod.number().min(updateExperienceBodyPriceMin).optional(),
+    durationHours: zod.string().optional(),
     title: zod
       .record(zod.string(), zod.string())
       .optional()
@@ -71,19 +110,44 @@ export const UpdateExperienceBody = zod
       .describe(
         "Per-language text values. Keys are language codes (en, es, it, fr, ...).",
       ),
+    includes: zod
+      .record(zod.string(), zod.array(zod.string()))
+      .optional()
+      .describe("Per-language string arrays. Keys are language codes."),
   })
-  .describe("Fields to update on an experience. All fields are optional.");
+  .describe(
+    "Fields to update on an experience. All fields are optional but validated when provided.",
+  );
+
+export const updateExperienceResponsePriceMin = 0;
 
 export const UpdateExperienceResponse = zod.object({
   id: zod.string().describe("Stable semantic ID (e.g. 'yacht', 'atv')"),
-  sortOrder: zod.number(),
-  visible: zod.boolean(),
-  tagType: zod.string(),
-  category: zod.array(zod.string()),
-  imageUrl: zod.string(),
-  fallbackEmoji: zod.string(),
-  price: zod.number(),
-  durationHours: zod.string(),
+  slug: zod
+    .string()
+    .describe("URL-friendly slug (e.g. 'premium-private-yacht')"),
+  sortOrder: zod.number().describe("Display order (0-999)"),
+  visible: zod.boolean().describe("Whether experience is visible to public"),
+  tagType: zod.enum([
+    "bestSeller",
+    "adventure",
+    "extreme",
+    "cultural",
+    "comfort",
+    "planB",
+  ]),
+  category: zod
+    .array(zod.enum(["adventure", "relax", "cultural"]))
+    .describe("One or more categories"),
+  imageUrl: zod.string().url(),
+  fallbackEmoji: zod
+    .string()
+    .describe("Unicode emoji used if image fails to load"),
+  price: zod
+    .number()
+    .min(updateExperienceResponsePriceMin)
+    .describe("Price in USD"),
+  durationHours: zod.string().describe("Duration string (e.g. '6-8', '3-4')"),
   title: zod
     .record(zod.string(), zod.string())
     .describe(
@@ -97,5 +161,6 @@ export const UpdateExperienceResponse = zod.object({
   includes: zod
     .record(zod.string(), zod.array(zod.string()))
     .describe("Per-language string arrays. Keys are language codes."),
+  createdAt: zod.date(),
   updatedAt: zod.date(),
 });

@@ -9,6 +9,7 @@ import { experiencesTable } from "@workspace/db/schema";
 const experiences = [
   {
     id: "yacht",
+    slug: "premium-private-yacht",
     sortOrder: 1,
     visible: true,
     tagType: "bestSeller",
@@ -32,6 +33,7 @@ const experiences = [
   },
   {
     id: "atv",
+    slug: "atv-jungle-adventure",
     sortOrder: 2,
     visible: true,
     tagType: "adventure",
@@ -55,6 +57,7 @@ const experiences = [
   },
   {
     id: "bungee",
+    slug: "extreme-bungee-jumping",
     sortOrder: 3,
     visible: true,
     tagType: "extreme",
@@ -78,6 +81,7 @@ const experiences = [
   },
   {
     id: "chichenitza",
+    slug: "vip-chichen-itza",
     sortOrder: 4,
     visible: true,
     tagType: "cultural",
@@ -101,6 +105,7 @@ const experiences = [
   },
   {
     id: "transfers",
+    slug: "vip-airport-transfers",
     sortOrder: 5,
     visible: true,
     tagType: "comfort",
@@ -124,6 +129,7 @@ const experiences = [
   },
   {
     id: "rainday",
+    slug: "premium-rainy-day-plan",
     sortOrder: 6,
     visible: true,
     tagType: "planB",

@@ -21,6 +21,7 @@ import type {
   Experience,
   HealthStatus,
   UpdateExperienceBody,
+  ValidationErrorResponse,
 } from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
@@ -206,7 +207,7 @@ export const updateExperience = async (
 };
 
 export const getUpdateExperienceMutationOptions = <
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<ValidationErrorResponse | ErrorResponse>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -247,13 +248,15 @@ export type UpdateExperienceMutationResult = NonNullable<
   Awaited<ReturnType<typeof updateExperience>>
 >;
 export type UpdateExperienceMutationBody = BodyType<UpdateExperienceBody>;
-export type UpdateExperienceMutationError = ErrorType<ErrorResponse>;
+export type UpdateExperienceMutationError = ErrorType<
+  ValidationErrorResponse | ErrorResponse
+>;
 
 /**
  * @summary Update an experience (admin only)
  */
 export const useUpdateExperience = <
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<ValidationErrorResponse | ErrorResponse>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<

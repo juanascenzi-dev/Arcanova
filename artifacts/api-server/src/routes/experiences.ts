@@ -22,7 +22,7 @@ function requireAdminToken(req: Request, res: Response): boolean {
   return true;
 }
 
-// GET /api/experiences — public
+// GET /api/experiences — public, ordered by sortOrder
 router.get("/experiences", async (_req, res) => {
   try {
     const rows = await db
@@ -36,7 +36,7 @@ router.get("/experiences", async (_req, res) => {
   }
 });
 
-// PATCH /api/experiences/:id — admin only
+// PATCH /api/experiences/:id — admin only, with strict validation
 router.patch("/experiences/:id", async (req, res) => {
   if (!requireAdminToken(req, res)) return;
 
@@ -44,11 +44,30 @@ router.patch("/experiences/:id", async (req, res) => {
   const parsed = updateExperienceSchema.safeParse(req.body);
 
   if (!parsed.success) {
-    res.status(400).json({ error: "Invalid request body.", details: parsed.error.issues });
+    // Collect user-friendly error messages
+    const issues = parsed.error.issues.map(issue => ({
+      path: issue.path.join('.'),
+      message: issue.message,
+    }));
+    res.status(400).json({
+      error: "Validation failed",
+      details: issues,
+    });
     return;
   }
 
   try {
+    // Verify experience exists first
+    const existing = await db
+      .select()
+      .from(experiencesTable)
+      .where(eq(experiencesTable.id, id));
+
+    if (existing.length === 0) {
+      res.status(404).json({ error: `Experience '${id}' not found.` });
+      return;
+    }
+
     const updates = {
       ...parsed.data,
       updatedAt: new Date(),
@@ -60,15 +79,11 @@ router.patch("/experiences/:id", async (req, res) => {
       .where(eq(experiencesTable.id, id))
       .returning();
 
-    if (!updated) {
-      res.status(404).json({ error: `Experience '${id}' not found.` });
-      return;
-    }
-
     res.json(updated);
   } catch (err) {
     console.error(`PATCH /experiences/${id} error:`, err);
-    res.status(500).json({ error: "Failed to update experience." });
+    const msg = err instanceof Error ? err.message : 'Unknown error';
+    res.status(500).json({ error: `Failed to update experience: ${msg}` });
   }
 });
 

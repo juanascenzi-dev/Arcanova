@@ -66,6 +66,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Experience"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
         "401":
           description: Unauthorized — missing or invalid admin token
           content:
@@ -92,6 +98,9 @@ components:
       description: Per-language text values. Keys are language codes (en, es, it, fr, ...).
       additionalProperties:
         type: string
+      example:
+        en: "English text"
+        es: "Texto en español"
     I18nList:
       type: object
       description: Per-language string arrays. Keys are language codes.
@@ -99,41 +108,61 @@ components:
         type: array
         items:
           type: string
+      example:
+        en: ["Item 1", "Item 2"]
+        es: ["Elemento 1", "Elemento 2"]
     Experience:
       type: object
       properties:
         id:
           type: string
           description: Stable semantic ID (e.g. 'yacht', 'atv')
+        slug:
+          type: string
+          description: URL-friendly slug (e.g. 'premium-private-yacht')
         sortOrder:
           type: integer
+          description: Display order (0-999)
         visible:
           type: boolean
+          description: Whether experience is visible to public
         tagType:
           type: string
+          enum: ['bestSeller', 'adventure', 'extreme', 'cultural', 'comfort', 'planB']
         category:
           type: array
           items:
             type: string
+            enum: ['adventure', 'relax', 'cultural']
+          description: One or more categories
         imageUrl:
           type: string
+          format: uri
         fallbackEmoji:
           type: string
+          description: Unicode emoji used if image fails to load
         price:
           type: integer
+          minimum: 0
+          description: Price in USD
         durationHours:
           type: string
+          description: Duration string (e.g. '6-8', '3-4')
         title:
           $ref: "#/components/schemas/I18nText"
         desc:
           $ref: "#/components/schemas/I18nText"
         includes:
           $ref: "#/components/schemas/I18nList"
+        createdAt:
+          type: string
+          format: date-time
         updatedAt:
           type: string
           format: date-time
       required:
         - id
+        - slug
         - sortOrder
         - visible
         - tagType
@@ -145,21 +174,44 @@ components:
         - title
         - desc
         - includes
+        - createdAt
         - updatedAt
     UpdateExperienceBody:
       type: object
-      description: Fields to update on an experience. All fields are optional.
+      description: Fields to update on an experience. All fields are optional but validated when provided.
       properties:
-        visible:
-          type: boolean
-        imageUrl:
+        slug:
           type: string
+          description: URL-friendly slug
         sortOrder:
           type: integer
+          description: New display order
+        visible:
+          type: boolean
+        tagType:
+          type: string
+          enum: ['bestSeller', 'adventure', 'extreme', 'cultural', 'comfort', 'planB']
+        category:
+          type: array
+          items:
+            type: string
+            enum: ['adventure', 'relax', 'cultural']
+        imageUrl:
+          type: string
+          format: uri
+        fallbackEmoji:
+          type: string
+        price:
+          type: integer
+          minimum: 0
+        durationHours:
+          type: string
         title:
           $ref: "#/components/schemas/I18nText"
         desc:
           $ref: "#/components/schemas/I18nText"
+        includes:
+          $ref: "#/components/schemas/I18nList"
     ErrorResponse:
       type: object
       properties:
@@ -167,3 +219,20 @@ components:
           type: string
       required:
         - error
+    ValidationErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+            properties:
+              path:
+                type: string
+              message:
+                type: string
+      required:
+        - error
+        - details

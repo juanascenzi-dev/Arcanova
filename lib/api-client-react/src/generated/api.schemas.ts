@@ -23,34 +23,108 @@ export interface I18nList {
   [key: string]: string[];
 }
 
+export type ExperienceTagType =
+  (typeof ExperienceTagType)[keyof typeof ExperienceTagType];
+
+export const ExperienceTagType = {
+  bestSeller: "bestSeller",
+  adventure: "adventure",
+  extreme: "extreme",
+  cultural: "cultural",
+  comfort: "comfort",
+  planB: "planB",
+} as const;
+
+export type ExperienceCategoryItem =
+  (typeof ExperienceCategoryItem)[keyof typeof ExperienceCategoryItem];
+
+export const ExperienceCategoryItem = {
+  adventure: "adventure",
+  relax: "relax",
+  cultural: "cultural",
+} as const;
+
 export interface Experience {
   /** Stable semantic ID (e.g. 'yacht', 'atv') */
   id: string;
+  /** URL-friendly slug (e.g. 'premium-private-yacht') */
+  slug: string;
+  /** Display order (0-999) */
   sortOrder: number;
+  /** Whether experience is visible to public */
   visible: boolean;
-  tagType: string;
-  category: string[];
+  tagType: ExperienceTagType;
+  /** One or more categories */
+  category: ExperienceCategoryItem[];
   imageUrl: string;
+  /** Unicode emoji used if image fails to load */
   fallbackEmoji: string;
+  /**
+   * Price in USD
+   * @minimum 0
+   */
   price: number;
+  /** Duration string (e.g. '6-8', '3-4') */
   durationHours: string;
   title: I18nText;
   desc: I18nText;
   includes: I18nList;
+  createdAt: string;
   updatedAt: string;
 }
 
+export type UpdateExperienceBodyTagType =
+  (typeof UpdateExperienceBodyTagType)[keyof typeof UpdateExperienceBodyTagType];
+
+export const UpdateExperienceBodyTagType = {
+  bestSeller: "bestSeller",
+  adventure: "adventure",
+  extreme: "extreme",
+  cultural: "cultural",
+  comfort: "comfort",
+  planB: "planB",
+} as const;
+
+export type UpdateExperienceBodyCategoryItem =
+  (typeof UpdateExperienceBodyCategoryItem)[keyof typeof UpdateExperienceBodyCategoryItem];
+
+export const UpdateExperienceBodyCategoryItem = {
+  adventure: "adventure",
+  relax: "relax",
+  cultural: "cultural",
+} as const;
+
 /**
- * Fields to update on an experience. All fields are optional.
+ * Fields to update on an experience. All fields are optional but validated when provided.
  */
 export interface UpdateExperienceBody {
-  visible?: boolean;
-  imageUrl?: string;
+  /** URL-friendly slug */
+  slug?: string;
+  /** New display order */
   sortOrder?: number;
+  visible?: boolean;
+  tagType?: UpdateExperienceBodyTagType;
+  category?: UpdateExperienceBodyCategoryItem[];
+  imageUrl?: string;
+  fallbackEmoji?: string;
+  /** @minimum 0 */
+  price?: number;
+  durationHours?: string;
   title?: I18nText;
   desc?: I18nText;
+  includes?: I18nList;
 }
 
 export interface ErrorResponse {
   error: string;
+}
+
+export type ValidationErrorResponseDetailsItem = {
+  path?: string;
+  message?: string;
+};
+
+export interface ValidationErrorResponse {
+  error: string;
+  details: ValidationErrorResponseDetailsItem[];
 }

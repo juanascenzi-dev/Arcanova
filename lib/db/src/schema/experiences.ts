@@ -9,39 +9,63 @@ export type I18nList = Record<string, string[]>;         // { en: [...], es: [..
 
 export const experiencesTable = pgTable("experiences", {
   id:            text("id").primaryKey(),               // semantic: 'yacht', 'atv', etc.
+  slug:          text("slug").notNull().unique(),       // URL-friendly: 'premium-private-yacht'
   sortOrder:     integer("sort_order").notNull().default(0),
   visible:       boolean("visible").notNull().default(true),
-  tagType:       text("tag_type").notNull(),
-  category:      jsonb("category").$type<string[]>().notNull(),
+  tagType:       text("tag_type").notNull(),            // 'bestSeller', 'adventure', 'extreme', etc.
+  category:      jsonb("category").$type<string[]>().notNull(),  // ['adventure', 'relax']
   imageUrl:      text("image_url").notNull(),
   fallbackEmoji: text("fallback_emoji").notNull(),
   price:         integer("price").notNull(),
-  durationHours: text("duration_hours").notNull(),
+  durationHours: text("duration_hours").notNull(),      // '6-8' | '3-4' | '1-2', etc.
   title:         jsonb("title").$type<I18nText>().notNull(),
   desc:          jsonb("desc").$type<I18nText>().notNull(),
   includes:      jsonb("includes").$type<I18nList>().notNull(),
+  createdAt:     timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt:     timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-// Zod schemas derived from Drizzle table
-export const insertExperienceSchema = createInsertSchema(experiencesTable, {
-  category: z.array(z.string()),
-  title: z.record(z.string(), z.string()),
-  desc: z.record(z.string(), z.string()),
-  includes: z.record(z.string(), z.array(z.string())),
+// Stricter Zod schemas for validation
+const SUPPORTED_LANGUAGES = ['en', 'es', 'it', 'fr'] as const;
+const VALID_TAG_TYPES = ['bestSeller', 'adventure', 'extreme', 'cultural', 'comfort', 'planB'] as const;
+const VALID_CATEGORIES = ['adventure', 'relax', 'cultural'] as const;
+
+const i18nTextSchema = z.record(
+  z.enum(SUPPORTED_LANGUAGES),
+  z.string().min(1, 'Text cannot be empty').max(500, 'Text too long')
+);
+
+const i18nListSchema = z.record(
+  z.enum(SUPPORTED_LANGUAGES),
+  z.array(z.string().min(1).max(200)).min(1).max(20)
+);
+
+export const insertExperienceSchema = z.object({
+  id: z.string().min(1).max(50),
+  slug: z.string().min(1).max(100).regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'Invalid slug format'),
+  sortOrder: z.number().int().min(0).max(999),
+  visible: z.boolean(),
+  tagType: z.enum(VALID_TAG_TYPES),
+  category: z.array(z.enum(VALID_CATEGORIES)).min(1),
+  imageUrl: z.string().url('Invalid image URL'),
+  fallbackEmoji: z.string().emoji('Must be a valid emoji'),
+  price: z.number().int().min(0).max(999999),
+  durationHours: z.string().min(1).max(50),
+  title: i18nTextSchema,
+  desc: i18nTextSchema,
+  includes: i18nListSchema,
 });
 
-export const selectExperienceSchema = createSelectSchema(experiencesTable, {
-  category: z.array(z.string()),
-  title: z.record(z.string(), z.string()),
-  desc: z.record(z.string(), z.string()),
-  includes: z.record(z.string(), z.array(z.string())),
-});
-
+// For updates, all fields optional except we validate structure
 export const updateExperienceSchema = insertExperienceSchema
   .partial()
-  .omit({ id: true, updatedAt: true });
+  .omit({ id: true });
+
+export const selectExperienceSchema = insertExperienceSchema.extend({
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
 
 export type Experience       = typeof experiencesTable.$inferSelect;
-export type InsertExperience = typeof experiencesTable.$inferInsert;
+export type InsertExperience = z.infer<typeof insertExperienceSchema>;
 export type UpdateExperience = z.infer<typeof updateExperienceSchema>;

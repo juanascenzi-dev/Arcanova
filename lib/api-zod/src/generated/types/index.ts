@@ -8,7 +8,13 @@
 
 export * from "./errorResponse";
 export * from "./experience";
+export * from "./experienceCategoryItem";
+export * from "./experienceTagType";
 export * from "./healthStatus";
 export * from "./i18nList";
 export * from "./i18nText";
 export * from "./updateExperienceBody";
+export * from "./updateExperienceBodyCategoryItem";
+export * from "./updateExperienceBodyTagType";
+export * from "./validationErrorResponse";
+export * from "./validationErrorResponseDetailsItem";
