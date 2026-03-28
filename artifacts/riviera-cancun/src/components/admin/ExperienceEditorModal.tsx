@@ -60,11 +60,20 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
     try {
       const pin = (import.meta.env.VITE_ADMIN_PIN as string | undefined) ?? 'austral2025';
 
+      // Preserve existing translations in other languages, only update en/es
       const body: Record<string, unknown> = {
-        title: { ...exp.title, en: titleEn, es: titleEs },
-        desc: { ...exp.desc, en: descEn, es: descEs },
+        title: { 
+          ...exp.title,  // Keep any existing translations
+          en: titleEn, 
+          es: titleEs 
+        },
+        desc: { 
+          ...exp.desc,   // Keep any existing translations
+          en: descEn, 
+          es: descEs 
+        },
         includes: {
-          ...exp.includes,
+          ...exp.includes,  // Keep any existing translations
           en: includesEn.split('\n').map(s => s.trim()).filter(Boolean),
           es: includesEs.split('\n').map(s => s.trim()).filter(Boolean),
         },

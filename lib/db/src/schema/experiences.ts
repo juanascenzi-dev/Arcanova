@@ -26,17 +26,19 @@ export const experiencesTable = pgTable("experiences", {
 });
 
 // Stricter Zod schemas for validation
-const SUPPORTED_LANGUAGES = ['en', 'es', 'it', 'fr'] as const;
+// Only supports languages that the frontend actually handles
+const SUPPORTED_LANGUAGES = ['en', 'es'] as const;
 const VALID_TAG_TYPES = ['bestSeller', 'adventure', 'extreme', 'cultural', 'comfort', 'planB'] as const;
 const VALID_CATEGORIES = ['adventure', 'relax', 'cultural'] as const;
 
+// Flexible i18n schemas: accept any language key, but validate structure
 const i18nTextSchema = z.record(
-  z.enum(SUPPORTED_LANGUAGES),
+  z.string(),
   z.string().min(1, 'Text cannot be empty').max(500, 'Text too long')
 );
 
 const i18nListSchema = z.record(
-  z.enum(SUPPORTED_LANGUAGES),
+  z.string(),
   z.array(z.string().min(1).max(200)).min(1).max(20)
 );
 
