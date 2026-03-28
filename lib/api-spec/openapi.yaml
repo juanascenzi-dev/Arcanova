@@ -222,6 +222,46 @@ components:
             type: array
             items:
               type: string
+        bookingRules:
+          type: object
+          nullable: true
+          properties:
+            chargeMode:
+              type: string
+              enum: [per_person, per_group_fixed, per_day, per_person_per_day, per_group_per_day]
+            minTravelers:
+              type: integer
+              nullable: true
+            maxTravelers:
+              type: integer
+              nullable: true
+            includedTravelers:
+              type: integer
+              nullable: true
+            chargeFullIncludedGroup:
+              type: boolean
+              nullable: true
+          required:
+            - chargeMode
+        servicePricing:
+          type: object
+          nullable: true
+          properties:
+            priceAdult:
+              type: number
+              nullable: true
+            priceChild:
+              type: number
+              nullable: true
+            priceSenior:
+              type: number
+              nullable: true
+            priceGroup:
+              type: number
+              nullable: true
+            priceDay:
+              type: number
+              nullable: true
         createdAt:
           type: string
           format: date-time

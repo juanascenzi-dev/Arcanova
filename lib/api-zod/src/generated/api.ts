@@ -31,6 +31,30 @@ export const ListExperiencesResponseItem = zod.object({
   title: zod.record(zod.string(), zod.string()),
   desc: zod.record(zod.string(), zod.string()),
   includes: zod.record(zod.string(), zod.array(zod.string())),
+  bookingRules: zod
+    .object({
+      chargeMode: zod.enum([
+        "per_person",
+        "per_group_fixed",
+        "per_day",
+        "per_person_per_day",
+        "per_group_per_day",
+      ]),
+      minTravelers: zod.number().nullish(),
+      maxTravelers: zod.number().nullish(),
+      includedTravelers: zod.number().nullish(),
+      chargeFullIncludedGroup: zod.boolean().nullish(),
+    })
+    .nullish(),
+  servicePricing: zod
+    .object({
+      priceAdult: zod.number().nullish(),
+      priceChild: zod.number().nullish(),
+      priceSenior: zod.number().nullish(),
+      priceGroup: zod.number().nullish(),
+      priceDay: zod.number().nullish(),
+    })
+    .nullish(),
   createdAt: zod.date(),
   updatedAt: zod.date(),
 });
@@ -59,6 +83,30 @@ export const UpdateExperienceResponse = zod.object({
   title: zod.record(zod.string(), zod.string()),
   desc: zod.record(zod.string(), zod.string()),
   includes: zod.record(zod.string(), zod.array(zod.string())),
+  bookingRules: zod
+    .object({
+      chargeMode: zod.enum([
+        "per_person",
+        "per_group_fixed",
+        "per_day",
+        "per_person_per_day",
+        "per_group_per_day",
+      ]),
+      minTravelers: zod.number().nullish(),
+      maxTravelers: zod.number().nullish(),
+      includedTravelers: zod.number().nullish(),
+      chargeFullIncludedGroup: zod.boolean().nullish(),
+    })
+    .nullish(),
+  servicePricing: zod
+    .object({
+      priceAdult: zod.number().nullish(),
+      priceChild: zod.number().nullish(),
+      priceSenior: zod.number().nullish(),
+      priceGroup: zod.number().nullish(),
+      priceDay: zod.number().nullish(),
+    })
+    .nullish(),
   createdAt: zod.date(),
   updatedAt: zod.date(),
 });

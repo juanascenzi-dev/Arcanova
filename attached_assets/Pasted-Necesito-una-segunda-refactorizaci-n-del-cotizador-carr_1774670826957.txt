@@ -1,0 +1,295 @@
+Necesito una segunda refactorización del cotizador/carrito en `artifacts/riviera-cancun` para corregir reglas de negocio, cálculo, validaciones por servicio y generación de mensajes por canal.
+
+## Problemas detectados
+
+### 1. Cálculo incorrecto del total
+
+Hoy el mensaje arma varios ítems, pero el total/subtotal solo toma correctamente uno de ellos en algunos casos.
+
+Ejemplo real:
+
+* ATV Jungle Adventure muestra subtotal USD 190
+* otros servicios aparecen en el mensaje
+* pero el total final sigue siendo USD 190 y no suma correctamente todos los ítems
+
+Quiero revisar y corregir toda la lógica de:
+
+* subtotal por ítem
+* total general del carrito
+* multiplicación por días si corresponde
+* multiplicación por cantidad/unidades si corresponde
+* combinación de múltiples servicios en un mismo carrito
+
+---
+
+### 2. Reglas por servicio: capacidad, mínimo, máximo y forma de cobro
+
+Cada servicio debe poder definir sus propias reglas desde los datos editables del servicio.
+
+Necesito agregar, si no existe, campos/configuración por servicio para soportar esto:
+
+```ts
+type ServiceBookingRules = {
+  minTravelers?: number;
+  maxTravelers?: number;
+  includedTravelers?: number;
+  chargeMode: 
+    | "per_person"
+    | "per_group_fixed"
+    | "per_day"
+    | "per_person_per_day"
+    | "per_group_per_day";
+  enforceMax?: boolean;
+  enforceMin?: boolean;
+  allowLessThanIncluded?: boolean;
+  chargeFullIncludedGroup?: boolean;
+};
+```
+
+Podés ajustar naming/shape, pero la idea es esta.
+
+### Casos reales que deben soportarse
+
+* Servicios de **2 a 4 personas**
+* Servicios de **15 a 20 personas**
+* Servicios de **1 a 2 personas**
+* Servicios donde:
+
+  * se puede reservar con menos personas que el máximo,
+  * pero **se cobra igual como si fuera el cupo base/completo**
+* Ejemplo:
+
+  * ATV para hasta 4 personas
+  * si el usuario selecciona 2 personas, se permite
+  * pero el precio puede cobrarse como paquete/base de 4
+* También debe soportar servicios que sí se cobran estrictamente por persona
+
+### Comportamiento esperado en UI
+
+* Si un servicio tiene `maxTravelers=4`, no dejar seleccionar más de 4
+* Si el servicio tiene mínimo, no dejar cerrar/agregar si no llega al mínimo
+* Si el servicio cobra cupo base completo, aunque elijan menos personas, calcular con la base definida
+* Si el precio diario es USD 190 y el usuario pone 2 días, el subtotal debe ser `190 * 2`
+* Si corresponde multiplicar por personas y por días, hacerlo correctamente
+* Todo esto debe salir de la configuración del servicio, no hardcodeado
+
+---
+
+### 3. Necesitamos llevar estas reglas al editor/admin de servicios
+
+Quiero que estas propiedades del servicio se puedan editar donde hoy se editan los servicios/experiencias.
+
+Buscar dónde vive hoy el modelo o configuración de servicios y extenderlo para permitir:
+
+* mínimo de personas
+* máximo de personas
+* cantidad incluida/base
+* modo de cobro
+* precio por adulto
+* precio por niño
+* precio por adulto mayor
+* precio fijo por grupo
+* precio por día
+* multiplicación por días
+* flags de validación
+
+No quiero una solución solo frontend.
+Quiero que el servicio tenga metadata/config persistente y reusable.
+
+---
+
+### 4. Mensajes: sacar íconos rotos y rehacer formato
+
+Hoy en algunos canales aparecen caracteres rotos como `�` o emojis mal renderizados.
+
+Quiero corregir la generación de mensajes:
+
+* asegurar encoding correcto
+* evitar cualquier carácter roto
+* si hace falta, reemplazar emojis por texto simple o bullets ASCII seguros
+* priorizar compatibilidad antes que decoración
+
+### Nuevo formato de mensaje
+
+Quiero un mensaje limpio, sin caracteres rotos, por ejemplo:
+
+```txt
+Hello, we are interested in quoting the following services:
+
+1. ATV Jungle Adventure
+- Date: 19/03/2026 to 01/04/2026
+- Days: 19
+- Travelers: 2 adults, 1 child, 4 seniors
+- Pricing model: group / per day / per person (según corresponda)
+- Estimated subtotal: USD XXX
+
+2. VIP Chichén Itzá
+- Days: 4
+- Travelers: 1 adult, 3 children
+- Estimated subtotal: USD XXX
+
+Total estimate: USD XXX
+
+Please let us know availability and final pricing.
+Thank you.
+```
+
+También quiero que el generador soporte ES y EN, pero sin emojis rotos.
+
+### Opcional
+
+Si ya existe o conviene, permitir que cada servicio tenga:
+
+* un emoji configurable
+* o un label corto
+  Pero si eso complica, prefiero directamente **no usar emojis**.
+
+---
+
+### 5. Email no funciona
+
+Hoy al tocar “via Email” parece cerrar el popup y no pasa nada.
+
+Necesito que revises y corrijas:
+
+* generación de `mailto:`
+* subject
+* body
+* URL encoding
+* event handlers del botón
+* si algún `preventDefault`, cierre de modal o navegación está interfiriendo
+
+Resultado esperado:
+
+* al hacer click en Email debe abrir el cliente de correo con subject + body completos
+* no debe simplemente cerrar el modal sin hacer nada
+
+---
+
+### 6. Facebook/Messenger falla
+
+Hoy al tocar Facebook redirige a una URL que termina en error / contenido no disponible.
+
+Necesito revisar qué está haciendo hoy exactamente:
+
+* si intenta abrir una URL inválida de Messenger
+* si usa un flujo no soportado para precompletar mensajes
+* si está usando un share URL incorrecto
+* si el perfil/página configurado no corresponde
+
+### Objetivo
+
+Definir una estrategia robusta para Facebook:
+
+1. Si se puede abrir Messenger/Page de forma confiable, hacerlo
+2. Si NO se puede prellenar mensaje en Facebook de forma estable, entonces:
+
+   * abrir la página/perfil correcto
+   * y opcionalmente copiar el mensaje al portapapeles antes
+   * mostrando feedback tipo “Mensaje copiado, pegalo en Facebook”
+3. No quiero una redirección rota
+
+Buscar también si el dato cargado hoy en config:
+
+* es página
+* perfil
+* share link
+* m.me link
+* o URL incorrecta
+
+---
+
+## Alcance técnico
+
+### Revisar y corregir
+
+* `src/lib/quote.ts`
+* `QuoteCartContext`
+* `ContactChannelSelector.tsx`
+* generación de links por canal
+* modelo/config de servicios
+* editor/admin de servicios si existe
+* seed/data actual de servicios
+
+### Implementar
+
+1. modelo de reglas por servicio
+2. validación por servicio en el carrito
+3. cálculo correcto por ítem según modo de cobro
+4. total acumulado correcto
+5. mensajes robustos sin caracteres rotos
+6. fix de email
+7. estrategia robusta para Facebook/Messenger
+
+---
+
+## Casos de negocio a cubrir
+
+### Caso A — Grupo con máximo 4
+
+* Servicio: ATV
+* Máximo: 4
+* Usuario elige 2 personas
+* Se permite
+* Si la regla es cobrar grupo base, cobra como grupo/base de 4
+* No debe dejar seleccionar 5
+
+### Caso B — Servicio por día
+
+* Precio base: USD 190 por día
+* Usuario elige 2 días
+* Subtotal = USD 380
+
+### Caso C — Por persona por día
+
+* 2 adultos
+* USD 50 por adulto por día
+* 3 días
+* Subtotal = 2 * 50 * 3
+
+### Caso D — Múltiples servicios
+
+* ATV + Chichén Itzá + Yacht
+* Cada uno calcula su subtotal
+* Total final suma todos correctamente
+
+---
+
+## Entregables
+
+1. Código implementado
+2. Explicación de la nueva lógica de pricing/capacity
+3. Lista de archivos modificados
+4. Qué campos nuevos se agregaron al modelo/config de servicios
+5. Ejemplos de cálculo para 4 casos reales
+6. Ejemplos del mensaje generado para:
+
+   * WhatsApp
+   * Email
+   * Facebook/Messenger
+7. Explicación concreta de por qué fallaba Email
+8. Explicación concreta de por qué fallaba Facebook y cómo quedó resuelto
+
+## Criterios de aceptación
+
+* El total del carrito suma todos los ítems correctamente
+* Cada servicio puede definir min/max/cupo base y forma de cobro
+* No se puede exceder el máximo permitido por servicio
+* Si la lógica comercial dice cobrar base completa, se respeta
+* Los días multiplican correctamente cuando corresponde
+* Email abre correctamente con subject/body
+* Facebook no redirige a una URL rota
+* Los mensajes ya no muestran caracteres/íconos corruptos
+* La solución queda basada en metadata del servicio, no hardcodeada por servicio individual
+
+## Muy importante
+
+No hagas PR ni merge automático.
+Generá también un `.txt` en `/docs/dev-logs/` con fecha y commit asociado explicando:
+
+* diagnóstico de los bugs
+* cambios realizados
+* archivos tocados
+* decisiones de negocio/modelado
+* riesgos pendientes
+* próximos pasos sugeridos

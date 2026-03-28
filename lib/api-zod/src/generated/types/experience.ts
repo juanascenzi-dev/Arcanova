@@ -5,8 +5,10 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { ExperienceBookingRules } from "./experienceBookingRules";
 import type { ExperienceDesc } from "./experienceDesc";
 import type { ExperienceIncludes } from "./experienceIncludes";
+import type { ExperienceServicePricing } from "./experienceServicePricing";
 import type { ExperienceTitle } from "./experienceTitle";
 
 export interface Experience {
@@ -23,6 +25,8 @@ export interface Experience {
   title: ExperienceTitle;
   desc: ExperienceDesc;
   includes: ExperienceIncludes;
+  bookingRules?: ExperienceBookingRules;
+  servicePricing?: ExperienceServicePricing;
   createdAt: Date;
   updatedAt: Date;
 }

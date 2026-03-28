@@ -11,6 +11,33 @@ export type ExperienceDesc = { [key: string]: string };
 
 export type ExperienceIncludes = { [key: string]: string[] };
 
+export type ExperienceBookingRulesChargeMode =
+  (typeof ExperienceBookingRulesChargeMode)[keyof typeof ExperienceBookingRulesChargeMode];
+
+export const ExperienceBookingRulesChargeMode = {
+  per_person: "per_person",
+  per_group_fixed: "per_group_fixed",
+  per_day: "per_day",
+  per_person_per_day: "per_person_per_day",
+  per_group_per_day: "per_group_per_day",
+} as const;
+
+export type ExperienceBookingRules = {
+  chargeMode: ExperienceBookingRulesChargeMode;
+  minTravelers?: number | null;
+  maxTravelers?: number | null;
+  includedTravelers?: number | null;
+  chargeFullIncludedGroup?: boolean | null;
+} | null;
+
+export type ExperienceServicePricing = {
+  priceAdult?: number | null;
+  priceChild?: number | null;
+  priceSenior?: number | null;
+  priceGroup?: number | null;
+  priceDay?: number | null;
+} | null;
+
 export interface Experience {
   id: string;
   slug: string;
@@ -25,6 +52,8 @@ export interface Experience {
   title: ExperienceTitle;
   desc: ExperienceDesc;
   includes: ExperienceIncludes;
+  bookingRules?: ExperienceBookingRules;
+  servicePricing?: ExperienceServicePricing;
   createdAt: string;
   updatedAt: string;
 }

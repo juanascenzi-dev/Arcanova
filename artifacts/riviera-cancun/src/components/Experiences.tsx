@@ -252,6 +252,8 @@ export function Experiences() {
                     experienceId={selectedExp.id}
                     experienceSlug={selectedExp.slug}
                     experienceName={itemText.title}
+                    bookingRules={selectedExp.bookingRules}
+                    servicePricing={selectedExp.servicePricing}
                     onClose={() => setSelectedExp(null)}
                   />
                 </div>
