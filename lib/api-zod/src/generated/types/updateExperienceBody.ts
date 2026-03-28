@@ -5,28 +5,7 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import type { I18nList } from "./i18nList";
-import type { I18nText } from "./i18nText";
-import type { UpdateExperienceBodyCategoryItem } from "./updateExperienceBodyCategoryItem";
-import type { UpdateExperienceBodyTagType } from "./updateExperienceBodyTagType";
 
-/**
- * Fields to update on an experience. All fields are optional but validated when provided.
- */
 export interface UpdateExperienceBody {
-  /** URL-friendly slug */
-  slug?: string;
-  /** New display order */
-  sortOrder?: number;
-  visible?: boolean;
-  tagType?: UpdateExperienceBodyTagType;
-  category?: UpdateExperienceBodyCategoryItem[];
-  imageUrl?: string;
-  fallbackEmoji?: string;
-  /** @minimum 0 */
-  price?: number;
-  durationHours?: string;
-  title?: I18nText;
-  desc?: I18nText;
-  includes?: I18nList;
+  [key: string]: unknown;
 }

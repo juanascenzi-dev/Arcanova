@@ -6,9 +6,6 @@
  * OpenAPI spec version: 0.1.0
  */
 
-/**
- * Per-language string arrays. Keys are language codes.
- */
-export interface I18nList {
-  [key: string]: string[];
-}
+export type HealthCheck200 = {
+  status?: string;
+};

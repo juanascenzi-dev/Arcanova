@@ -5,36 +5,24 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import type { ExperienceCategoryItem } from "./experienceCategoryItem";
-import type { ExperienceTagType } from "./experienceTagType";
-import type { I18nList } from "./i18nList";
-import type { I18nText } from "./i18nText";
+import type { ExperienceDesc } from "./experienceDesc";
+import type { ExperienceIncludes } from "./experienceIncludes";
+import type { ExperienceTitle } from "./experienceTitle";
 
 export interface Experience {
-  /** Stable semantic ID (e.g. 'yacht', 'atv') */
   id: string;
-  /** URL-friendly slug (e.g. 'premium-private-yacht') */
   slug: string;
-  /** Display order (0-999) */
   sortOrder: number;
-  /** Whether experience is visible to public */
   visible: boolean;
-  tagType: ExperienceTagType;
-  /** One or more categories */
-  category: ExperienceCategoryItem[];
+  tagType: string;
+  category: string[];
   imageUrl: string;
-  /** Unicode emoji used if image fails to load */
   fallbackEmoji: string;
-  /**
-   * Price in USD
-   * @minimum 0
-   */
   price: number;
-  /** Duration string (e.g. '6-8', '3-4') */
   durationHours: string;
-  title: I18nText;
-  desc: I18nText;
-  includes: I18nList;
+  title: ExperienceTitle;
+  desc: ExperienceDesc;
+  includes: ExperienceIncludes;
   createdAt: Date;
   updatedAt: Date;
 }

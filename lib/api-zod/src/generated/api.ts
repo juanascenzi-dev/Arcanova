@@ -8,159 +8,152 @@
 import * as zod from "zod";
 
 /**
- * Returns server health status
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
-  status: zod.string(),
+  status: zod.string().optional(),
 });
 
 /**
- * Returns experiences ordered by sort_order. Hidden experiences are included (clients should filter by visible).
  * @summary List all experiences
  */
-export const listExperiencesResponsePriceMin = 0;
-
 export const ListExperiencesResponseItem = zod.object({
-  id: zod.string().describe("Stable semantic ID (e.g. 'yacht', 'atv')"),
-  slug: zod
-    .string()
-    .describe("URL-friendly slug (e.g. 'premium-private-yacht')"),
-  sortOrder: zod.number().describe("Display order (0-999)"),
-  visible: zod.boolean().describe("Whether experience is visible to public"),
-  tagType: zod.enum([
-    "bestSeller",
-    "adventure",
-    "extreme",
-    "cultural",
-    "comfort",
-    "planB",
-  ]),
-  category: zod
-    .array(zod.enum(["adventure", "relax", "cultural"]))
-    .describe("One or more categories"),
-  imageUrl: zod.string().url(),
-  fallbackEmoji: zod
-    .string()
-    .describe("Unicode emoji used if image fails to load"),
-  price: zod
-    .number()
-    .min(listExperiencesResponsePriceMin)
-    .describe("Price in USD"),
-  durationHours: zod.string().describe("Duration string (e.g. '6-8', '3-4')"),
-  title: zod
-    .record(zod.string(), zod.string())
-    .describe(
-      "Per-language text values. Keys are language codes (en, es, it, fr, ...).",
-    ),
-  desc: zod
-    .record(zod.string(), zod.string())
-    .describe(
-      "Per-language text values. Keys are language codes (en, es, it, fr, ...).",
-    ),
-  includes: zod
-    .record(zod.string(), zod.array(zod.string()))
-    .describe("Per-language string arrays. Keys are language codes."),
+  id: zod.string(),
+  slug: zod.string(),
+  sortOrder: zod.number(),
+  visible: zod.boolean(),
+  tagType: zod.string(),
+  category: zod.array(zod.string()),
+  imageUrl: zod.string(),
+  fallbackEmoji: zod.string(),
+  price: zod.number(),
+  durationHours: zod.string(),
+  title: zod.record(zod.string(), zod.string()),
+  desc: zod.record(zod.string(), zod.string()),
+  includes: zod.record(zod.string(), zod.array(zod.string())),
   createdAt: zod.date(),
   updatedAt: zod.date(),
 });
 export const ListExperiencesResponse = zod.array(ListExperiencesResponseItem);
 
 /**
- * Requires x-admin-token header matching the ADMIN_PIN environment variable.
- * @summary Update an experience (admin only)
+ * @summary Update experience (admin only)
  */
 export const UpdateExperienceParams = zod.object({
   id: zod.coerce.string(),
 });
 
-export const updateExperienceBodyPriceMin = 0;
-
-export const UpdateExperienceBody = zod
-  .object({
-    slug: zod.string().optional().describe("URL-friendly slug"),
-    sortOrder: zod.number().optional().describe("New display order"),
-    visible: zod.boolean().optional(),
-    tagType: zod
-      .enum([
-        "bestSeller",
-        "adventure",
-        "extreme",
-        "cultural",
-        "comfort",
-        "planB",
-      ])
-      .optional(),
-    category: zod
-      .array(zod.enum(["adventure", "relax", "cultural"]))
-      .optional(),
-    imageUrl: zod.string().url().optional(),
-    fallbackEmoji: zod.string().optional(),
-    price: zod.number().min(updateExperienceBodyPriceMin).optional(),
-    durationHours: zod.string().optional(),
-    title: zod
-      .record(zod.string(), zod.string())
-      .optional()
-      .describe(
-        "Per-language text values. Keys are language codes (en, es, it, fr, ...).",
-      ),
-    desc: zod
-      .record(zod.string(), zod.string())
-      .optional()
-      .describe(
-        "Per-language text values. Keys are language codes (en, es, it, fr, ...).",
-      ),
-    includes: zod
-      .record(zod.string(), zod.array(zod.string()))
-      .optional()
-      .describe("Per-language string arrays. Keys are language codes."),
-  })
-  .describe(
-    "Fields to update on an experience. All fields are optional but validated when provided.",
-  );
-
-export const updateExperienceResponsePriceMin = 0;
+export const UpdateExperienceBody = zod.object({}).passthrough();
 
 export const UpdateExperienceResponse = zod.object({
-  id: zod.string().describe("Stable semantic ID (e.g. 'yacht', 'atv')"),
-  slug: zod
-    .string()
-    .describe("URL-friendly slug (e.g. 'premium-private-yacht')"),
-  sortOrder: zod.number().describe("Display order (0-999)"),
-  visible: zod.boolean().describe("Whether experience is visible to public"),
-  tagType: zod.enum([
-    "bestSeller",
-    "adventure",
-    "extreme",
-    "cultural",
-    "comfort",
-    "planB",
-  ]),
-  category: zod
-    .array(zod.enum(["adventure", "relax", "cultural"]))
-    .describe("One or more categories"),
-  imageUrl: zod.string().url(),
-  fallbackEmoji: zod
-    .string()
-    .describe("Unicode emoji used if image fails to load"),
-  price: zod
-    .number()
-    .min(updateExperienceResponsePriceMin)
-    .describe("Price in USD"),
-  durationHours: zod.string().describe("Duration string (e.g. '6-8', '3-4')"),
-  title: zod
-    .record(zod.string(), zod.string())
-    .describe(
-      "Per-language text values. Keys are language codes (en, es, it, fr, ...).",
-    ),
-  desc: zod
-    .record(zod.string(), zod.string())
-    .describe(
-      "Per-language text values. Keys are language codes (en, es, it, fr, ...).",
-    ),
-  includes: zod
-    .record(zod.string(), zod.array(zod.string()))
-    .describe("Per-language string arrays. Keys are language codes."),
+  id: zod.string(),
+  slug: zod.string(),
+  sortOrder: zod.number(),
+  visible: zod.boolean(),
+  tagType: zod.string(),
+  category: zod.array(zod.string()),
+  imageUrl: zod.string(),
+  fallbackEmoji: zod.string(),
+  price: zod.number(),
+  durationHours: zod.string(),
+  title: zod.record(zod.string(), zod.string()),
+  desc: zod.record(zod.string(), zod.string()),
+  includes: zod.record(zod.string(), zod.array(zod.string())),
   createdAt: zod.date(),
   updatedAt: zod.date(),
+});
+
+/**
+ * Capture user interest from an experience
+ * @summary Create a lead (public)
+ */
+export const CreateLeadBody = zod.object({
+  experienceId: zod.string(),
+  experienceSlug: zod.string(),
+  experienceTitle: zod.string(),
+  channel: zod.enum(["whatsapp", "email", "facebook"]),
+  lang: zod.enum(["en", "es"]),
+  tentativeDate: zod.string().nullish(),
+  people: zod.number().nullish(),
+  messageSnapshot: zod.string().nullish(),
+  source: zod.string().nullish(),
+});
+
+/**
+ * Retrieve all leads with optional filtering
+ * @summary List leads (admin only)
+ */
+export const ListLeadsQueryParams = zod.object({
+  status: zod.enum(["new", "contacted", "closed", "discarded"]).optional(),
+  channel: zod.enum(["whatsapp", "email", "facebook"]).optional(),
+  experienceId: zod.coerce.string().optional(),
+  lang: zod.enum(["en", "es"]).optional(),
+});
+
+export const ListLeadsResponseItem = zod.object({
+  id: zod.string().uuid(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+  experienceId: zod.string(),
+  experienceSlug: zod.string(),
+  experienceTitle: zod.string(),
+  channel: zod.enum(["whatsapp", "email", "facebook"]),
+  lang: zod.enum(["en", "es"]),
+  tentativeDate: zod.string().nullish(),
+  people: zod.number().nullish(),
+  messageSnapshot: zod.string().nullish(),
+  source: zod.string().nullish(),
+  status: zod.enum(["new", "contacted", "closed", "discarded"]),
+});
+export const ListLeadsResponse = zod.array(ListLeadsResponseItem);
+
+/**
+ * @summary Get a single lead (admin only)
+ */
+export const GetLeadParams = zod.object({
+  id: zod.coerce.string().uuid(),
+});
+
+export const GetLeadResponse = zod.object({
+  id: zod.string().uuid(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+  experienceId: zod.string(),
+  experienceSlug: zod.string(),
+  experienceTitle: zod.string(),
+  channel: zod.enum(["whatsapp", "email", "facebook"]),
+  lang: zod.enum(["en", "es"]),
+  tentativeDate: zod.string().nullish(),
+  people: zod.number().nullish(),
+  messageSnapshot: zod.string().nullish(),
+  source: zod.string().nullish(),
+  status: zod.enum(["new", "contacted", "closed", "discarded"]),
+});
+
+/**
+ * @summary Update lead status (admin only)
+ */
+export const UpdateLeadParams = zod.object({
+  id: zod.coerce.string().uuid(),
+});
+
+export const UpdateLeadBody = zod.object({
+  status: zod.enum(["new", "contacted", "closed", "discarded"]).optional(),
+  messageSnapshot: zod.string().optional(),
+});
+
+export const UpdateLeadResponse = zod.object({
+  id: zod.string().uuid(),
+  createdAt: zod.date(),
+  updatedAt: zod.date(),
+  experienceId: zod.string(),
+  experienceSlug: zod.string(),
+  experienceTitle: zod.string(),
+  channel: zod.enum(["whatsapp", "email", "facebook"]),
+  lang: zod.enum(["en", "es"]),
+  tentativeDate: zod.string().nullish(),
+  people: zod.number().nullish(),
+  messageSnapshot: zod.string().nullish(),
+  source: zod.string().nullish(),
+  status: zod.enum(["new", "contacted", "closed", "discarded"]),
 });

@@ -5,126 +5,151 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-export interface HealthStatus {
-  status: string;
-}
+export type ExperienceTitle = { [key: string]: string };
 
-/**
- * Per-language text values. Keys are language codes (en, es, it, fr, ...).
- */
-export interface I18nText {
-  [key: string]: string;
-}
+export type ExperienceDesc = { [key: string]: string };
 
-/**
- * Per-language string arrays. Keys are language codes.
- */
-export interface I18nList {
-  [key: string]: string[];
-}
-
-export type ExperienceTagType =
-  (typeof ExperienceTagType)[keyof typeof ExperienceTagType];
-
-export const ExperienceTagType = {
-  bestSeller: "bestSeller",
-  adventure: "adventure",
-  extreme: "extreme",
-  cultural: "cultural",
-  comfort: "comfort",
-  planB: "planB",
-} as const;
-
-export type ExperienceCategoryItem =
-  (typeof ExperienceCategoryItem)[keyof typeof ExperienceCategoryItem];
-
-export const ExperienceCategoryItem = {
-  adventure: "adventure",
-  relax: "relax",
-  cultural: "cultural",
-} as const;
+export type ExperienceIncludes = { [key: string]: string[] };
 
 export interface Experience {
-  /** Stable semantic ID (e.g. 'yacht', 'atv') */
   id: string;
-  /** URL-friendly slug (e.g. 'premium-private-yacht') */
   slug: string;
-  /** Display order (0-999) */
   sortOrder: number;
-  /** Whether experience is visible to public */
   visible: boolean;
-  tagType: ExperienceTagType;
-  /** One or more categories */
-  category: ExperienceCategoryItem[];
+  tagType: string;
+  category: string[];
   imageUrl: string;
-  /** Unicode emoji used if image fails to load */
   fallbackEmoji: string;
-  /**
-   * Price in USD
-   * @minimum 0
-   */
   price: number;
-  /** Duration string (e.g. '6-8', '3-4') */
   durationHours: string;
-  title: I18nText;
-  desc: I18nText;
-  includes: I18nList;
+  title: ExperienceTitle;
+  desc: ExperienceDesc;
+  includes: ExperienceIncludes;
   createdAt: string;
   updatedAt: string;
 }
 
-export type UpdateExperienceBodyTagType =
-  (typeof UpdateExperienceBodyTagType)[keyof typeof UpdateExperienceBodyTagType];
-
-export const UpdateExperienceBodyTagType = {
-  bestSeller: "bestSeller",
-  adventure: "adventure",
-  extreme: "extreme",
-  cultural: "cultural",
-  comfort: "comfort",
-  planB: "planB",
-} as const;
-
-export type UpdateExperienceBodyCategoryItem =
-  (typeof UpdateExperienceBodyCategoryItem)[keyof typeof UpdateExperienceBodyCategoryItem];
-
-export const UpdateExperienceBodyCategoryItem = {
-  adventure: "adventure",
-  relax: "relax",
-  cultural: "cultural",
-} as const;
-
-/**
- * Fields to update on an experience. All fields are optional but validated when provided.
- */
 export interface UpdateExperienceBody {
-  /** URL-friendly slug */
-  slug?: string;
-  /** New display order */
-  sortOrder?: number;
-  visible?: boolean;
-  tagType?: UpdateExperienceBodyTagType;
-  category?: UpdateExperienceBodyCategoryItem[];
-  imageUrl?: string;
-  fallbackEmoji?: string;
-  /** @minimum 0 */
-  price?: number;
-  durationHours?: string;
-  title?: I18nText;
-  desc?: I18nText;
-  includes?: I18nList;
+  [key: string]: unknown;
 }
 
-export interface ErrorResponse {
-  error: string;
+export type LeadChannel = (typeof LeadChannel)[keyof typeof LeadChannel];
+
+export const LeadChannel = {
+  whatsapp: "whatsapp",
+  email: "email",
+  facebook: "facebook",
+} as const;
+
+export type LeadLang = (typeof LeadLang)[keyof typeof LeadLang];
+
+export const LeadLang = {
+  en: "en",
+  es: "es",
+} as const;
+
+export type LeadStatus = (typeof LeadStatus)[keyof typeof LeadStatus];
+
+export const LeadStatus = {
+  new: "new",
+  contacted: "contacted",
+  closed: "closed",
+  discarded: "discarded",
+} as const;
+
+export interface Lead {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  experienceId: string;
+  experienceSlug: string;
+  experienceTitle: string;
+  channel: LeadChannel;
+  lang: LeadLang;
+  tentativeDate?: string | null;
+  people?: number | null;
+  messageSnapshot?: string | null;
+  source?: string | null;
+  status: LeadStatus;
 }
 
-export type ValidationErrorResponseDetailsItem = {
-  path?: string;
-  message?: string;
+export type CreateLeadBodyChannel =
+  (typeof CreateLeadBodyChannel)[keyof typeof CreateLeadBodyChannel];
+
+export const CreateLeadBodyChannel = {
+  whatsapp: "whatsapp",
+  email: "email",
+  facebook: "facebook",
+} as const;
+
+export type CreateLeadBodyLang =
+  (typeof CreateLeadBodyLang)[keyof typeof CreateLeadBodyLang];
+
+export const CreateLeadBodyLang = {
+  en: "en",
+  es: "es",
+} as const;
+
+export interface CreateLeadBody {
+  experienceId: string;
+  experienceSlug: string;
+  experienceTitle: string;
+  channel: CreateLeadBodyChannel;
+  lang: CreateLeadBodyLang;
+  tentativeDate?: string | null;
+  people?: number | null;
+  messageSnapshot?: string | null;
+  source?: string | null;
+}
+
+export type UpdateLeadBodyStatus =
+  (typeof UpdateLeadBodyStatus)[keyof typeof UpdateLeadBodyStatus];
+
+export const UpdateLeadBodyStatus = {
+  new: "new",
+  contacted: "contacted",
+  closed: "closed",
+  discarded: "discarded",
+} as const;
+
+export interface UpdateLeadBody {
+  status?: UpdateLeadBodyStatus;
+  messageSnapshot?: string;
+}
+
+export type HealthCheck200 = {
+  status?: string;
 };
 
-export interface ValidationErrorResponse {
-  error: string;
-  details: ValidationErrorResponseDetailsItem[];
-}
+export type ListLeadsParams = {
+  status?: ListLeadsStatus;
+  channel?: ListLeadsChannel;
+  experienceId?: string;
+  lang?: ListLeadsLang;
+};
+
+export type ListLeadsStatus =
+  (typeof ListLeadsStatus)[keyof typeof ListLeadsStatus];
+
+export const ListLeadsStatus = {
+  new: "new",
+  contacted: "contacted",
+  closed: "closed",
+  discarded: "discarded",
+} as const;
+
+export type ListLeadsChannel =
+  (typeof ListLeadsChannel)[keyof typeof ListLeadsChannel];
+
+export const ListLeadsChannel = {
+  whatsapp: "whatsapp",
+  email: "email",
+  facebook: "facebook",
+} as const;
+
+export type ListLeadsLang = (typeof ListLeadsLang)[keyof typeof ListLeadsLang];
+
+export const ListLeadsLang = {
+  en: "en",
+  es: "es",
+} as const;

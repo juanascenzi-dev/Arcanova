@@ -1,0 +1,92 @@
+Quiero que el próximo paso de AUSTRAL Cancún Premium sea comercial, no solo editorial.
+
+Contexto:
+
+* Experiences ya quedó sólido como módulo CMS
+* Hay `/admin`
+* Las experiencias se editan y persisten en PostgreSQL
+* La web ya deriva contactos por WhatsApp, Email y Facebook
+* Hoy el negocio real se cierra por canales directos, no por checkout
+
+Objetivo:
+convertir la captura de interés en un sistema real de leads para Rodri dentro de `/admin`.
+
+## Lo que quiero implementar
+
+### 1. Persistencia real de leads
+
+Cada vez que un usuario inicia contacto desde una experiencia (WhatsApp / Email / Facebook), guardar un lead real en base de datos.
+
+Campos mínimos sugeridos:
+
+* id
+* created_at
+* experience_id
+* experience_slug
+* experience_title_snapshot
+* channel (`whatsapp` | `email` | `facebook`)
+* lang
+* tentative_date (nullable)
+* people (nullable)
+* message_snapshot
+* page_context o source (si sirve)
+* status (`new` | `contacted` | `closed` | `discarded`)
+
+Si hay mejores nombres o estructura, proponelos.
+
+### 2. Admin inbox de leads
+
+Agregar en `/admin` una sección clara para que Rodri pueda ver los leads recibidos.
+
+Quiero una UI simple y útil, por ejemplo:
+
+* tabla o lista
+* ordenado por más recientes
+* filtros por:
+
+  * estado
+  * canal
+  * experiencia
+  * idioma
+  * fecha
+* visualmente clara y coherente con el estilo actual
+
+### 3. Gestión básica de leads
+
+Rodri debe poder:
+
+* ver detalle del lead
+* cambiar estado
+* ver cuándo entró
+* ver por qué canal llegó
+* ver el resumen exacto que disparó el usuario
+
+### 4. Integridad de negocio
+
+* El lead debe guardarse antes de abrir el canal de contacto, o con una estrategia confiable equivalente
+* No romper el flujo actual de WhatsApp / Email / Facebook
+* Mantener la experiencia rápida para el usuario
+
+### 5. Técnica
+
+* usar la infraestructura real ya existente (backend/API/PostgreSQL)
+* no volver a localStorage
+* diseñarlo como base para un mini CRM liviano
+* mantener el código limpio y consistente con el patrón ya usado en Experiences
+
+## Entregables
+
+1. modelo de datos propuesto para leads
+2. migraciones/schema
+3. endpoints creados o modificados
+4. cambios en frontend para guardar leads
+5. nueva vista o sección de `/admin` para verlos y gestionarlos
+6. archivos modificados
+7. cómo probar el flujo completo
+8. pendientes o mejoras futuras
+
+Importante:
+
+* priorizar utilidad real para Rodri
+* no sobrecomplicar con CRM enterprise
+* construir una primera versión sólida, clara y mantenible

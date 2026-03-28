@@ -6,7 +6,4 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type ValidationErrorResponseDetailsItem = {
-  path?: string;
-  message?: string;
-};
+export type ExperienceDesc = { [key: string]: string };

@@ -250,6 +250,7 @@ export function Experiences() {
 
                   <ContactChannelSelector
                     experienceId={selectedExp.id}
+                    experienceSlug={selectedExp.slug}
                     experienceName={itemText.title}
                     onClose={() => setSelectedExp(null)}
                   />

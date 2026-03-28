@@ -1,8 +1,8 @@
 import { useAdmin } from '@/contexts/AdminContext';
 import { AdminLogin } from '@/components/admin/AdminLogin';
-import Home from '@/pages/Home';
+import { AdminDashboard } from '@/components/admin/AdminDashboard';
 
 export default function Admin() {
   const { isAdmin } = useAdmin();
-  return isAdmin ? <Home /> : <AdminLogin />;
+  return isAdmin ? <AdminDashboard /> : <AdminLogin />;
 }
