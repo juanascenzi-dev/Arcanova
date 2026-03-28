@@ -1,0 +1,77 @@
+Tomando como base la refactorización ya hecha de `src/lib/contact.ts`, Email Step, Messenger Step, Footer y WhatsAppButton, quiero una iteración final de consolidación de canales de contacto en `artifacts/riviera-cancun`.
+
+## Objetivo
+
+Cerrar definitivamente la capa de contacto institucional del sitio y dejarla lista para producción.
+
+## Tareas
+
+### 1. Validación real fuera de Replit Preview
+
+No tratar el `mailto:` como bug dentro del iframe de Replit.
+Quiero que documentes claramente en el reporte que:
+
+* el preview sandbox bloquea protocolos externos
+* el test válido de email debe hacerse en navegador real y mobile
+* el código debe quedar preparado para producción igualmente
+
+### 2. Facebook / Messenger de negocio
+
+Quiero preparar el sistema para usar una **Página de Facebook del negocio** en lugar de perfil personal.
+
+Tareas:
+
+* dejar `CONTACT_CHANNELS.messengerUrl` y `facebookPageUrl` listos para reemplazo simple
+* revisar que ningún componente dependa de `rodrigo.fimiani`
+* documentar exactamente qué valor hay que cambiar cuando exista la página oficial
+
+### 3. Footer institucional
+
+Revisar el footer y dejarlo cerrado para producción:
+
+* WhatsApp
+* Email
+* Messenger
+* Facebook
+* Instagram solo si está configurado
+* labels claros
+* links correctos
+* mobile friendly
+
+### 4. QA final
+
+Validar:
+
+* WhatsApp flotante
+* WhatsApp desde carrito
+* Email Step
+* Messenger Step
+* Footer links
+* consistencia de datos entre todos los puntos de contacto
+
+### 5. Prevención de regresiones
+
+Buscar y eliminar cualquier contacto hardcodeado restante en:
+
+* componentes
+* utilidades
+* seeds/mock data
+* textos estáticos
+
+## Entregables
+
+1. lista final de archivos auditados
+2. contactos hardcodeados encontrados y removidos
+3. confirmación de que todo consume `src/lib/contact.ts`
+4. instrucciones concretas para cambiar luego a la página oficial de Facebook
+5. reporte de QA real vs limitaciones de Replit Preview
+
+## Muy importante
+
+No hagas PR ni merge automático.
+Generá `.txt` en `/docs/dev-logs/` con:
+
+* estado final de canales de contacto
+* limitaciones del entorno preview
+* pasos pendientes para pasar a página oficial de Facebook
+* riesgos residuales

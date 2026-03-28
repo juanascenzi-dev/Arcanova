@@ -112,7 +112,7 @@ export function Footer() {
               </a>
               {/* Facebook */}
               <a
-                href={CONTACT_CHANNELS.facebookProfileUrl}
+                href={CONTACT_CHANNELS.facebookPageUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Facebook"

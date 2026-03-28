@@ -210,12 +210,11 @@ function EmailStep({
 // ─── Messenger Step ───────────────────────────────────────────────────────────
 //
 // Strategy:
-//   1. Auto-copy message to clipboard immediately.
-//   2. Open https://m.me/rodrigo.fimiani in a new tab (Messenger direct link).
-//      m.me works reliably when Facebook/Messenger is installed (mobile) or in desktop
-//      browsers where the user is logged in.
-//   3. Show copyable message + fallback button to Facebook profile in case Messenger
-//      doesn't open.
+//   1. Auto-copy message to clipboard immediately (always succeeds outside sandboxed iframes).
+//   2. Open CONTACT_CHANNELS.messengerUrl in a new tab — works reliably on mobile
+//      (opens Messenger app) and on desktop when the user is logged in to Facebook.
+//   3. Show copyable message + fallback button to the Facebook page/profile in case
+//      Messenger doesn't open (not logged in, security check, etc.).
 
 function MessengerStep({
   cart, lang, onBack,
@@ -278,7 +277,7 @@ function MessengerStep({
 
       {/* Fallback: Facebook profile */}
       <a
-        href={CONTACT_CHANNELS.facebookProfileUrl}
+        href={CONTACT_CHANNELS.facebookPageUrl}
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl font-semibold text-sm border-2 border-[#1877F2] text-[#1877F2] hover:bg-[#1877F2] hover:text-white transition-colors"

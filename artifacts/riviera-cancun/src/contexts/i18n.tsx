@@ -120,9 +120,9 @@ type Translations = {
       peopleLabel: string;
       whatsapp: string;
       email: string;
-      facebook: string;
-      facebookCopy: string;
-      goToFacebook: string;
+      messenger: string;
+      messengerCopy: string;
+      openMessenger: string;
       back: string;
       copied: string;
       note: string;
@@ -154,7 +154,7 @@ type Translations = {
       contactVia: string;
       whatsapp: string;
       email: string;
-      facebook: string;
+      messenger: string;
       clearCart: string;
       itemSingular: string;
       itemPlural: string;
@@ -304,9 +304,9 @@ const translations: Translations = {
       peopleLabel: "¿Cuántos son?",
       whatsapp: "Consultar por WhatsApp",
       email: "Consultar por Email",
-      facebook: "Consultar por Facebook",
-      facebookCopy: "Copiá este mensaje y pegalo en Facebook:",
-      goToFacebook: "Abrir Facebook",
+      messenger: "Consultar por Messenger",
+      messengerCopy: "Copiá este mensaje y pegalo en Messenger:",
+      openMessenger: "Abrir Messenger",
       back: "Volver",
       copied: "¡Copiado al portapapeles!",
       note: "No realizamos cobros por la web. El cierre de la reserva se coordina directamente con vos."
@@ -338,7 +338,7 @@ const translations: Translations = {
       contactVia: "Contactar por",
       whatsapp: "WhatsApp",
       email: "Email",
-      facebook: "Facebook",
+      messenger: "Messenger",
       clearCart: "Vaciar carrito",
       itemSingular: "experiencia",
       itemPlural: "experiencias",
@@ -510,9 +510,9 @@ const translations: Translations = {
       peopleLabel: "How many people?",
       whatsapp: "Inquire via WhatsApp",
       email: "Inquire via Email",
-      facebook: "Inquire via Facebook",
-      facebookCopy: "Copy this message and paste it on Facebook:",
-      goToFacebook: "Open Facebook",
+      messenger: "Inquire via Messenger",
+      messengerCopy: "Copy this message and paste it into Messenger:",
+      openMessenger: "Open Messenger",
       back: "Go back",
       copied: "Copied to clipboard!",
       note: "We don't process payments online. Booking is confirmed directly with you."
@@ -544,7 +544,7 @@ const translations: Translations = {
       contactVia: "Contact via",
       whatsapp: "WhatsApp",
       email: "Email",
-      facebook: "Facebook",
+      messenger: "Messenger",
       clearCart: "Clear quote",
       itemSingular: "experience",
       itemPlural: "experiences",

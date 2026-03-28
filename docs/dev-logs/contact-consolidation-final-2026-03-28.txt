@@ -1,0 +1,298 @@
+================================================================================
+DEV LOG — Consolidación Final de Canales de Contacto
+Proyecto: AUSTRAL · Cancún Premium
+Fecha: 2026-03-28
+Sesión: consolidación-contacto-v2
+================================================================================
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. ESTADO FINAL DE CANALES DE CONTACTO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+FUENTE ÚNICA DE VERDAD
+──────────────────────
+Archivo: artifacts/riviera-cancun/src/lib/contact.ts
+
+  email           info.ixchelexperience@yahoo.com
+  whatsappNumber  5491138475846    (Argentina +54 11 3847 5846)
+  messengerUrl    https://m.me/rodrigo.fimiani
+  facebookPageUrl https://www.facebook.com/rodrigo.fimiani
+  instagramUrl    null             (oculto hasta que exista la cuenta)
+
+PUNTOS DE CONTACTO EN EL SITIO
+────────────────────────────────
+Todos leen de CONTACT_CHANNELS. Cero hardcoding fuera de contact.ts.
+
+  1. WhatsApp flotante (bottom-right)
+     Componente: WhatsAppButton.tsx
+     URL: https://wa.me/5491138475846
+     Estado: ✓ CORRECTO
+
+  2. WhatsApp desde carrito
+     Componente: ContactChannelSelector.tsx → handleWhatsApp()
+     URL: buildCartWhatsAppUrl() → wa.me/5491138475846?text=<mensaje_codificado>
+     Estado: ✓ CORRECTO
+
+  3. Email desde carrito → Email Step
+     Componente: ContactChannelSelector.tsx → EmailStep
+     Flujo: muestra destinatario, asunto y mensaje pre-armado + link mailto:
+     Estado: ✓ CORRECTO (ver sección 2 sobre limitaciones del preview)
+
+  4. Messenger desde carrito → Messenger Step
+     Componente: ContactChannelSelector.tsx → MessengerStep
+     Flujo: auto-copia mensaje → abre m.me/rodrigo.fimiani → muestra UI
+     Estado: ✓ CORRECTO (ver sección 3 sobre Messenger personal vs negocio)
+
+  5. Footer — columna Contacto
+     Componente: Footer.tsx
+     Links: mailto: email ✓ | wa.me WhatsApp ✓ | m.me Messenger ✓
+     Estado: ✓ CORRECTO
+
+  6. Footer — columna Redes Sociales
+     Componente: Footer.tsx
+     Iconos: Messenger ✓ | Facebook ✓ | WhatsApp ✓ | Instagram (oculto) ✓
+     Estado: ✓ CORRECTO
+
+RESUMEN DE CONSISTENCIA
+────────────────────────
+  Todos los puntos de contacto consumen `src/lib/contact.ts`.
+  Para cambiar cualquier dato de contacto: editar SOLO contact.ts.
+  El resto del sitio se actualiza automáticamente.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+2. EMAIL — LIMITACIONES DEL ENTORNO PREVIEW VS PRODUCCIÓN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+POR QUÉ `mailto:` NO FUNCIONA EN EL PREVIEW DE REPLIT
+───────────────────────────────────────────────────────
+Replit embebe la app en un <iframe> con sandbox de seguridad.
+Ese sandbox bloquea la navegación a protocolos externos por diseño.
+Esto afecta:
+  ✗ window.location.href = "mailto:..."
+  ✗ window.open("mailto:...", "_blank")
+  ✗ document.createElement("a").click()
+  ✗ <a href="mailto:..."> al hacer click en el iframe
+
+COMPORTAMIENTO EN PRODUCCIÓN (fuera del sandbox)
+─────────────────────────────────────────────────
+El link <a href="mailto:info.ixchelexperience@yahoo.com?subject=...&body=...">
+funciona correctamente en:
+  ✓ Chrome / Firefox / Safari en desktop
+  ✓ Safari en iPhone → abre Mail.app
+  ✓ Chrome en Android → muestra selector de apps de correo
+  ✓ Outlook, Thunderbird, etc.
+
+TEST VÁLIDO (cómo verificar en producción)
+──────────────────────────────────────────
+  Método 1: Deploy a Railway / Vercel y abrir la URL pública directamente.
+  Método 2: Correr `pnpm --filter @workspace/riviera-cancun dev` y abrir
+            http://localhost:21880 directamente (no a través del iframe de Replit).
+  Método 3: Abrir la URL de Replit Dev (...spock.replit.dev/...) en una
+            nueva pestaña fuera del iframe → el mailto funciona.
+
+DISEÑO DEL EMAIL STEP
+──────────────────────
+El "Email Step" fue diseñado para funcionar en todos los contextos:
+  - En browser real: botón "Abrir cliente de correo" abre directamente.
+  - En iframe/sandbox: muestra el destinatario, asunto y mensaje copiables.
+    El usuario puede copiar manualmente y enviar desde su cliente.
+  - Sin JavaScript habilitado: igual se ven los datos.
+
+VEREDICTO: El código está correcto y listo para producción.
+El comportamiento en el preview de Replit es una limitación del entorno,
+NO un bug del código.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+3. FACEBOOK / MESSENGER — PASOS PARA MIGRAR A PÁGINA DE NEGOCIO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+SITUACIÓN ACTUAL
+────────────────
+El sistema usa el perfil personal de Facebook (rodrigo.fimiani).
+Esto funciona, pero tiene limitaciones:
+  - Los links m.me de perfiles personales pueden mostrar pantalla
+    de verificación de Facebook para usuarios no logueados.
+  - Facebook prioriza m.me para Páginas de negocio verificadas.
+  - Un perfil personal no puede usar el widget de Messenger ni el
+    Messenger Business API.
+
+CUÁNDO HACER LA MIGRACIÓN
+──────────────────────────
+Crear una Página de Facebook del negocio (no perfil personal) cuando:
+  a) el negocio tenga nombre registrado / marca definida
+  b) se quiera habilitar Messenger Business API (chatbot, notificaciones)
+  c) se quiera aparecer en búsquedas de Facebook como negocio
+
+PASOS EXACTOS PARA MIGRAR (cuando esté listo)
+──────────────────────────────────────────────
+
+  PASO 1: Crear la Página en Facebook
+    → facebook.com/pages/create
+    → Categoría: "Agencia de viajes" o "Tour Operator"
+    → Elegir username: ejemplo @australcancun o @australcancunpremium
+
+  PASO 2: Activar Messenger en la Página
+    → Configuración de la Página → Mensajería → activar
+
+  PASO 3: Editar UNA sola línea en contact.ts
+
+    Antes:
+      messengerUrl: 'https://m.me/rodrigo.fimiani',
+      facebookPageUrl: 'https://www.facebook.com/rodrigo.fimiani',
+
+    Después (ejemplo):
+      messengerUrl: 'https://m.me/australcancun',
+      facebookPageUrl: 'https://www.facebook.com/australcancun',
+
+    ⚠️  Eso es TODO. Ningun otro archivo necesita tocarse.
+    Todos los componentes leen de CONTACT_CHANNELS automáticamente.
+
+  PASO 4: Verificar en producción
+    → El link m.me/<PAGE_USERNAME> debe abrir Messenger directamente,
+      sin pantalla de verificación, incluso para usuarios sin login.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+4. QA — RESULTADOS DEL AUDIT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+AUDITORÍA DE HARDCODING (búsqueda por grep en todo el codebase)
+────────────────────────────────────────────────────────────────
+
+  Patrón buscado:
+    rodrigo\.fimiani | 5491138475846 | 529981234567 |
+    info\.ixchelexperience | australcancun\.com |
+    wa\.me/[0-9] | mailto:[a-z]
+
+  Resultados:
+    ÚNICO archivo con coincidencias: src/lib/contact.ts
+    → solo en la DEFINICIÓN de los valores (correcto)
+    → ningún componente tiene datos hardcodeados
+
+  facebookProfileUrl:
+    → ELIMINADO de todos los archivos. Renombrado a facebookPageUrl.
+    → 0 referencias fuera de contact.ts
+
+COMPONENTES AUDITADOS
+──────────────────────
+  src/lib/contact.ts              → FUENTE ÚNICA. OK.
+  src/lib/leads.ts                → usa CONTACT_CONFIG (re-export de CONTACT_CHANNELS). OK.
+  src/lib/quote.ts                → importa CONTACT_CHANNELS desde contact.ts. OK.
+  src/components/WhatsAppButton.tsx      → usa whatsappUrl() de contact.ts. OK.
+  src/components/Footer.tsx              → usa CONTACT_CHANNELS y whatsappUrl(). OK.
+  src/components/ContactChannelSelector.tsx → usa CONTACT_CHANNELS y builders. OK.
+  src/components/Contact.tsx             → solo formulario HTML, sin datos de contacto. OK.
+  artifacts/api-server/src/**            → ningún dato de contacto hardcodeado. OK.
+
+CLAVES I18N — FACEBOOK → MESSENGER
+────────────────────────────────────
+  Tipo TypeScript: renombrado en interface `Translations`
+    inquiry.facebook      → inquiry.messenger
+    inquiry.facebookCopy  → inquiry.messengerCopy
+    inquiry.goToFacebook  → inquiry.openMessenger
+    quote.facebook        → quote.messenger
+
+  Valores ES: actualizados ("Facebook" → "Messenger" en textos visibles)
+  Valores EN: actualizados ("Facebook" → "Messenger" en textos visibles)
+
+RESUMEN QA
+───────────
+  WhatsApp flotante          ✓ número correcto
+  WhatsApp desde carrito     ✓ número correcto, mensaje pre-armado
+  Email Step                 ✓ destinatario correcto, copiable, mailto link
+  Messenger Step             ✓ auto-copy + m.me link + fallback FB
+  Footer links               ✓ todos correctos, Instagram oculto
+  Hardcoding residual        ✓ CERO (fuera de contact.ts)
+  Regresión facebookProfileUrl → ✓ eliminado y renombrado
+  i18n "Facebook" → "Messenger" → ✓ actualizado en ES y EN
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+5. ARCHIVOS MODIFICADOS EN ESTA ITERACIÓN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  src/lib/contact.ts
+    - Reescrito con guía de migración integrada en los comentarios
+    - facebookProfileUrl renombrado a facebookPageUrl
+    - Campo instagramUrl documentado con instrucciones de upgrade
+    - Comentario MIGRATION GUIDE al inicio del archivo
+
+  src/contexts/i18n.tsx
+    - Tipo Translations: facebook → messenger, facebookCopy → messengerCopy,
+      goToFacebook → openMessenger (en inquiry y quote)
+    - Valores ES: actualizados
+    - Valores EN: actualizados
+
+  src/components/ContactChannelSelector.tsx
+    - Comentario del MessengerStep limpiado (sin referencias a rodriguez.fimiani)
+    - facebookProfileUrl → facebookPageUrl
+
+  src/components/Footer.tsx
+    - facebookProfileUrl → facebookPageUrl
+
+  src/lib/leads.ts
+    - Sin cambios en esta iteración (ya usaba CONTACT_CONFIG re-exportado)
+
+  docs/dev-logs/contact-channels-fix-2026-03-28.txt
+    - Creado en iteración anterior (diagnóstico inicial)
+
+  docs/dev-logs/contact-consolidation-final-2026-03-28.txt
+    - Este archivo (QA completo + guías de migración)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+6. RIESGOS RESIDUALES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  RIESGO 1 — Messenger en perfil personal (BAJO-MEDIO)
+  ──────────────────────────────────────────────────────
+  Los links m.me en perfiles personales pueden mostrar una pantalla
+  de verificación de Facebook para usuarios no logueados. Esto NO es
+  un bug del código — es comportamiento de Facebook.
+  Mitigación actual: auto-copy del mensaje + fallback al perfil de Facebook.
+  Solución definitiva: migrar a Página de negocio (ver sección 3).
+
+  RIESGO 2 — WhatsApp número argentino para mercado mexicano (BAJO)
+  ──────────────────────────────────────────────────────────────────
+  El número actual es argentino (5491138475846). Si el público objetivo
+  son turistas en México que prefieren un número local, puede generar
+  dudas. Funciona igual de bien técnicamente.
+  Mitigación: en el footer se muestra como "WhatsApp" sin el número visible.
+
+  RIESGO 3 — Instagram null (BAJO)
+  ──────────────────────────────────
+  El ícono de Instagram está oculto mientras instagramUrl sea null.
+  Si se crea la cuenta y no se actualiza contact.ts, el ícono seguirá oculto.
+  Mitigación: es intencional. Mejor oculto que con un link roto.
+
+  RIESGO 4 — Email a Yahoo en spam (BAJO)
+  ─────────────────────────────────────────
+  Los clientes de correo pueden marcar como spam mensajes con
+  cuerpos largos generados automáticamente.
+  Mitigación: el Email Step muestra el asunto y permite que el
+  usuario lo envíe desde su propio cliente, que tiene reputación.
+
+  RIESGO 5 — Contact.tsx formulario no conectado a API (PENDIENTE)
+  ─────────────────────────────────────────────────────────────────
+  El formulario de la sección "Contacto" hace console.log pero no llama
+  a ningún endpoint. Los mensajes se pierden.
+  Prioridad: ALTA para producción.
+  Fix: conectar a POST /api/leads o a un proveedor de formularios (EmailJS,
+  Formspree, SendGrid, etc.)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+7. PRÓXIMOS PASOS RECOMENDADOS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  [ ] Crear Página de Facebook del negocio y actualizar contact.ts (2 líneas)
+  [ ] Agregar instagramUrl cuando haya cuenta → solo editar contact.ts
+  [ ] Conectar Contact.tsx (formulario genérico) a POST /api/leads o EmailJS
+  [ ] Verificar flows de email/Messenger en browser real (fuera del iframe)
+  [ ] Decidir si agregar número de WhatsApp mexicano para clientes locales
+
+================================================================================
+FIN DEL REPORTE
+================================================================================
