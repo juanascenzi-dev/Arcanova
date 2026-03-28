@@ -1,0 +1,11 @@
+[build]
+builder = "nixpacks"
+installCommand = "npm install -g pnpm && pnpm install --frozen-lockfile"
+buildCommand = "pnpm --filter @workspace/api-server run build"
+
+[deploy]
+startCommand = "node artifacts/api-server/dist/index.cjs"
+healthcheckPath = "/api/healthz"
+healthcheckTimeout = 30
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
