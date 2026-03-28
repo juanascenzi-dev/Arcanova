@@ -1,0 +1,185 @@
+Quiero una nueva iteración sobre el catálogo/listado de experiencias en `artifacts/riviera-cancun`, enfocada en:
+
+* mejorar filtros y `Sort By`
+* mostrar mejor la información en las tarjetas
+* y hacerlo respetando la arquitectura actual (sin hardcode, usando metadata centralizada como ya se hizo con `contact.ts`)
+
+---
+
+## Contexto importante (NO romper esto)
+
+En la iteración anterior se logró:
+
+* eliminar hardcode de datos de contacto
+* centralizar todo en `src/lib/contact.ts`
+* estandarizar consumo desde todos los componentes
+
+👉 Quiero mantener exactamente ese mismo enfoque:
+
+**NO hardcodear datos en componentes**
+**TODO debe venir de la metadata del servicio o utilidades centralizadas**
+
+---
+
+## Objetivo
+
+Convertir el catálogo en un sistema:
+
+* filtrable
+* ordenable
+* consistente
+* escalable
+
+y alineado con el modelo de datos de servicios (pricing + booking rules).
+
+---
+
+## 1. `Sort By` (prioridad alta)
+
+Agregar un control de ordenamiento con opciones:
+
+* Featured (default)
+* Price: Low → High
+* Price: High → Low
+* Duration: Short → Long
+* Duration: Long → Short
+* Capacity: Small → Large
+* Capacity: Large → Small
+* Name: A → Z
+
+---
+
+### IMPORTANTE (arquitectura)
+
+El sort NO debe:
+
+* parsear strings visuales
+* depender del texto de la card
+
+Debe usar metadata estructurada del servicio, por ejemplo:
+
+* `service_pricing`
+* `booking_rules`
+* duración normalizada
+
+Si falta algún dato estructurado → crearlo en el modelo, no inferirlo en el componente.
+
+---
+
+## 2. Filtros (prioridad alta)
+
+### A. Capacidad (CRÍTICO)
+
+Usar:
+
+* `minTravelers`
+* `maxTravelers`
+
+Mostrar opciones tipo:
+
+* 1–2
+* 2–4
+* 5–10
+* 10+
+
+👉 Este filtro debe usar directamente `booking_rules`, no duplicar lógica.
+
+---
+
+### B. Precio
+
+Basado en:
+
+* precio base del servicio (`service_pricing`)
+
+Buckets:
+
+* Under 100
+* 100–250
+* 250–500
+* 500+
+
+👉 Crear helper central:
+`getPriceBucket(service)`
+
+---
+
+### C. Duración
+
+Normalizar duración a algo comparable:
+
+* horas numéricas
+* o tipo: short / half-day / full-day / multi-day
+
+👉 Crear helper:
+`normalizeDuration(service)`
+
+---
+
+### D. Categoría
+
+Mantener el actual, pero integrarlo con los demás filtros (no como sistema separado).
+
+---
+
+## 3. UI (RESPETAR DISEÑO)
+
+NO quiero UI nueva tipo dashboard.
+
+Quiero:
+
+* misma paleta (azul / dorado / neutros)
+* mismas pills
+* mismos botones
+* misma tipografía
+* misma jerarquía visual
+
+---
+
+### Desktop
+
+* barra horizontal de filtros
+* Sort By alineado a la derecha
+* pills consistentes
+
+### Mobile
+
+* usar drawer o colapsable
+* evitar overflow horizontal
+
+---
+
+## 4. Tarjetas (sin hardcode)
+
+Cada tarjeta debe mostrar:
+
+* precio base
+* duración
+* capacidad
+
+Ejemplo:
+
+* From USD 180
+* Duration 3–4h
+* Capacity 2–4 people
+
+---
+
+### IMPORTANTE
+
+NO formatear esto directamente en el componente.
+
+Crear utilidades reutilizables:
+
+```ts
+getCapacityDisplay(service)
+getDurationDisplay(service)
+getPriceDisplay(service)
+```
+
+Y usarlas en:
+
+* tarjetas
+* filtros
+* modal
+* carrito (si aplica)

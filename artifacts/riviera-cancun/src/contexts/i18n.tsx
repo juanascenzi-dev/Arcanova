@@ -53,12 +53,49 @@ type Translations = {
         relax: string;
         cultural: string;
       };
+      sortBy: string;
+      sortOptions: {
+        featured: string;
+        priceAsc: string;
+        priceDesc: string;
+        durationAsc: string;
+        durationDesc: string;
+        capacityAsc: string;
+        capacityDesc: string;
+        nameAZ: string;
+      };
+      filterCapacity: {
+        label: string;
+        all: string;
+        '1-2': string;
+        '3-5': string;
+        '5-10': string;
+        '10plus': string;
+      };
+      filterPrice: {
+        label: string;
+        all: string;
+        under100: string;
+        '100-250': string;
+        '250-500': string;
+        '500plus': string;
+      };
+      filterDuration: {
+        label: string;
+        all: string;
+        short: string;
+        halfDay: string;
+        fullDay: string;
+      };
       labels: {
         from: string;
         duration: string;
+        capacity: string;
         details: string;
         bookThis: string;
         includes: string;
+        noResults: string;
+        clearFilters: string;
       };
       tags: {
         bestSeller: string;
@@ -213,12 +250,49 @@ const translations: Translations = {
         relax: "Relax & Confort",
         cultural: "Cultural"
       },
+      sortBy: "Ordenar por",
+      sortOptions: {
+        featured: "Destacados",
+        priceAsc: "Precio: menor a mayor",
+        priceDesc: "Precio: mayor a menor",
+        durationAsc: "Duración: corta a larga",
+        durationDesc: "Duración: larga a corta",
+        capacityAsc: "Capacidad: pequeña a grande",
+        capacityDesc: "Capacidad: grande a pequeña",
+        nameAZ: "Nombre: A → Z",
+      },
+      filterCapacity: {
+        label: "Capacidad",
+        all: "Todas",
+        '1-2': "1–2 personas",
+        '3-5': "3–5 personas",
+        '5-10': "5–10 personas",
+        '10plus': "10+ personas",
+      },
+      filterPrice: {
+        label: "Precio",
+        all: "Todos",
+        under100: "Menos de USD 100",
+        '100-250': "USD 100–250",
+        '250-500': "USD 250–500",
+        '500plus': "USD 500+",
+      },
+      filterDuration: {
+        label: "Duración",
+        all: "Todas",
+        short: "Corta (< 3h)",
+        halfDay: "Medio día (3–6h)",
+        fullDay: "Día completo (6h+)",
+      },
       labels: {
         from: "Desde USD",
         duration: "Duración",
+        capacity: "Capacidad",
         details: "Ver Detalles",
         bookThis: "Reservar Esta Experiencia",
-        includes: "¿Qué incluye?"
+        includes: "¿Qué incluye?",
+        noResults: "No hay experiencias con los filtros seleccionados.",
+        clearFilters: "Limpiar filtros",
       },
       tags: {
         bestSeller: "MÁS VENDIDO",
@@ -419,12 +493,49 @@ const translations: Translations = {
         relax: "Relax & Comfort",
         cultural: "Cultural"
       },
+      sortBy: "Sort by",
+      sortOptions: {
+        featured: "Featured",
+        priceAsc: "Price: Low to High",
+        priceDesc: "Price: High to Low",
+        durationAsc: "Duration: Short to Long",
+        durationDesc: "Duration: Long to Short",
+        capacityAsc: "Capacity: Small to Large",
+        capacityDesc: "Capacity: Large to Small",
+        nameAZ: "Name: A → Z",
+      },
+      filterCapacity: {
+        label: "Capacity",
+        all: "All",
+        '1-2': "1–2 people",
+        '3-5': "3–5 people",
+        '5-10': "5–10 people",
+        '10plus': "10+ people",
+      },
+      filterPrice: {
+        label: "Price",
+        all: "All",
+        under100: "Under USD 100",
+        '100-250': "USD 100–250",
+        '250-500': "USD 250–500",
+        '500plus': "USD 500+",
+      },
+      filterDuration: {
+        label: "Duration",
+        all: "All",
+        short: "Short (< 3h)",
+        halfDay: "Half day (3–6h)",
+        fullDay: "Full day (6h+)",
+      },
       labels: {
         from: "From USD",
         duration: "Duration",
+        capacity: "Capacity",
         details: "See Details",
         bookThis: "Book This Experience",
-        includes: "What's included?"
+        includes: "What's included?",
+        noResults: "No experiences match the selected filters.",
+        clearFilters: "Clear filters",
       },
       tags: {
         bestSeller: "BEST SELLER",
