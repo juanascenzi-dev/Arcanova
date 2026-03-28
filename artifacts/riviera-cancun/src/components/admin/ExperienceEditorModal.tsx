@@ -1,53 +1,57 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { type ExperienceData } from '@/data/experiences';
-import { type ExperienceAdminOverride, saveAdminOverride, resetAdminOverride } from '@/lib/adminStorage';
-import { getTranslation } from '@/contexts/i18n';
-import { RotateCcw, Save, X } from 'lucide-react';
+import { type Experience } from '@workspace/api-client-react';
+import { Save, X, Loader2, AlertCircle } from 'lucide-react';
 
 interface Props {
-  exp: ExperienceData;
-  override: ExperienceAdminOverride;
+  exp: Experience;
   open: boolean;
   onClose: () => void;
   onSaved: () => void;
 }
 
-export function ExperienceEditorModal({ exp, override, open, onClose, onSaved }: Props) {
-  const enBase = getTranslation('en').experiences.items[exp.id as keyof ReturnType<typeof getTranslation>['experiences']['items']];
-  const esBase = getTranslation('es').experiences.items[exp.id as keyof ReturnType<typeof getTranslation>['experiences']['items']];
-
-  const [imageUrl, setImageUrl] = useState(override.imageUrl ?? exp.imageUrl);
-  const [visible, setVisible] = useState(override.visible ?? true);
-  const [titleEn, setTitleEn] = useState(override.title?.en ?? enBase?.title ?? '');
-  const [titleEs, setTitleEs] = useState(override.title?.es ?? esBase?.title ?? '');
-  const [descEn, setDescEn] = useState(override.desc?.en ?? enBase?.desc ?? '');
-  const [descEs, setDescEs] = useState(override.desc?.es ?? esBase?.desc ?? '');
+export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
+  const [imageUrl, setImageUrl] = useState(exp.imageUrl);
+  const [visible, setVisible] = useState(exp.visible);
+  const [titleEn, setTitleEn] = useState(exp.title['en'] ?? '');
+  const [titleEs, setTitleEs] = useState(exp.title['es'] ?? '');
+  const [descEn, setDescEn] = useState(exp.desc['en'] ?? '');
+  const [descEs, setDescEs] = useState(exp.desc['es'] ?? '');
   const [imgPreviewError, setImgPreviewError] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleSave() {
-    const enChanged = titleEn !== enBase?.title || descEn !== enBase?.desc;
-    const esChanged = titleEs !== esBase?.title || descEs !== esBase?.desc;
-    saveAdminOverride(exp.id, {
-      imageUrl: imageUrl !== exp.imageUrl ? imageUrl : undefined,
-      visible,
-      title: (enChanged || esChanged) ? {
-        en: titleEn !== enBase?.title ? titleEn : undefined,
-        es: titleEs !== esBase?.title ? titleEs : undefined,
-      } : undefined,
-      desc: (enChanged || esChanged) ? {
-        en: descEn !== enBase?.desc ? descEn : undefined,
-        es: descEs !== esBase?.desc ? descEs : undefined,
-      } : undefined,
-    });
-    onSaved();
-    onClose();
-  }
+  async function handleSave() {
+    setSaving(true);
+    setError(null);
+    try {
+      const pin = (import.meta.env.VITE_ADMIN_PIN as string | undefined) ?? 'austral2025';
+      const res = await fetch(`/api/experiences/${exp.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-token': pin,
+        },
+        body: JSON.stringify({
+          title: { ...exp.title, en: titleEn, es: titleEs },
+          desc:  { ...exp.desc,  en: descEn,  es: descEs  },
+          imageUrl,
+          visible,
+        }),
+      });
 
-  function handleReset() {
-    resetAdminOverride(exp.id);
-    onSaved();
-    onClose();
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({})) as { error?: string };
+        throw new Error(errData.error ?? `Error del servidor (${res.status})`);
+      }
+
+      onSaved();
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error desconocido al guardar');
+    } finally {
+      setSaving(false);
+    }
   }
 
   const fieldClass = "w-full bg-white border border-brand-navy/15 rounded-xl px-3 py-2 text-sm text-brand-navy focus:outline-none focus:border-brand-gold transition-colors";
@@ -65,6 +69,8 @@ export function ExperienceEditorModal({ exp, override, open, onClose, onSaved }:
               </DialogTitle>
               <p className="text-xs text-brand-navy/40 mt-0.5">
                 ID: <code className="bg-brand-navy/10 px-1 rounded font-mono">{exp.id}</code>
+                {' · '}
+                <span className="text-brand-ocean">Los cambios se guardan en la base de datos</span>
               </p>
             </div>
             <button onClick={onClose} className="p-2 rounded-lg hover:bg-brand-navy/5 transition-colors">
@@ -133,29 +139,35 @@ export function ExperienceEditorModal({ exp, override, open, onClose, onSaved }:
               </div>
             </div>
 
-            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-              Los cambios se guardan localmente en este navegador. Para persistencia permanente, hay que conectar una base de datos en una fase futura.
-            </p>
+            {/* Error message */}
+            {error && (
+              <div className="flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2.5">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{error}</span>
+              </div>
+            )}
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between px-6 py-4 border-t border-brand-navy/10 shrink-0">
+          <div className="flex items-center justify-end px-6 py-4 border-t border-brand-navy/10 shrink-0 gap-3">
             <button
-              onClick={handleReset}
-              className="flex items-center gap-1.5 text-sm text-brand-navy/40 hover:text-brand-coral transition-colors"
+              onClick={onClose}
+              disabled={saving}
+              className="px-5 py-2.5 text-sm font-semibold text-brand-navy border border-brand-navy/15 rounded-xl hover:border-brand-navy/30 transition-colors disabled:opacity-50"
             >
-              <RotateCcw className="w-4 h-4" />
-              Restablecer original
+              Cancelar
             </button>
-            <div className="flex gap-3">
-              <button onClick={onClose} className="px-5 py-2.5 text-sm font-semibold text-brand-navy border border-brand-navy/15 rounded-xl hover:border-brand-navy/30 transition-colors">
-                Cancelar
-              </button>
-              <button onClick={handleSave} className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold bg-brand-gold text-brand-navy rounded-xl hover:bg-brand-navy hover:text-white transition-colors">
-                <Save className="w-4 h-4" />
-                Guardar cambios
-              </button>
-            </div>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold bg-brand-gold text-brand-navy rounded-xl hover:bg-brand-navy hover:text-white transition-colors disabled:opacity-60"
+            >
+              {saving ? (
+                <><Loader2 className="w-4 h-4 animate-spin" /> Guardando...</>
+              ) : (
+                <><Save className="w-4 h-4" /> Guardar cambios</>
+              )}
+            </button>
           </div>
         </div>
       </DialogContent>

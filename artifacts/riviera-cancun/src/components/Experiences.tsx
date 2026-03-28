@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from '@/contexts/i18n';
 import { useAdmin } from '@/contexts/AdminContext';
-import { experiencesData, type Category, type ExperienceData } from '@/data/experiences';
-import { getAdminOverrides } from '@/lib/adminStorage';
+import type { Category } from '@/data/experiences';
+import { type Experience, useListExperiences, getListExperiencesQueryKey } from '@workspace/api-client-react';
 import { ExperienceEditorModal } from '@/components/admin/ExperienceEditorModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Check, X, Pencil, EyeOff } from 'lucide-react';
@@ -13,45 +14,23 @@ import { ContactChannelSelector } from '@/components/ContactChannelSelector';
 export function Experiences() {
   const { t, lang } = useTranslation();
   const { isAdmin } = useAdmin();
+  const queryClient = useQueryClient();
   const [filter, setFilter] = useState<Category | 'all'>('all');
-  const [selectedExp, setSelectedExp] = useState<ExperienceData | null>(null);
-  const [editingExp, setEditingExp] = useState<ExperienceData | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [selectedExp, setSelectedExp] = useState<Experience | null>(null);
+  const [editingExp, setEditingExp] = useState<Experience | null>(null);
 
-  // Load admin overrides fresh each render (refreshKey forces re-read)
-  const overrides = getAdminOverrides();
-  void refreshKey; // consumed so React doesn't warn
+  const { data: apiExperiences, isLoading } = useListExperiences();
 
-  // Resolve display values for an experience (apply admin overrides)
-  function resolveText(exp: ExperienceData) {
-    const base = t.experiences.items[exp.id as keyof typeof t.experiences.items];
-    const ov = overrides[exp.id];
+  // Resolve display text from API data (multi-language JSONB fields)
+  function resolveText(exp: Experience) {
     return {
-      title: (lang === 'en' ? ov?.title?.en : ov?.title?.es) ?? base.title,
-      desc: (lang === 'en' ? ov?.desc?.en : ov?.desc?.es) ?? base.desc,
-      includes: base.includes,
+      title: exp.title[lang] ?? exp.title['en'] ?? exp.id,
+      desc: exp.desc[lang] ?? exp.desc['en'] ?? '',
+      includes: (exp.includes[lang] ?? exp.includes['en'] ?? []) as string[],
     };
   }
 
-  function resolveImage(exp: ExperienceData): string {
-    return overrides[exp.id]?.imageUrl ?? exp.imageUrl;
-  }
-
-  function isVisible(exp: ExperienceData): boolean {
-    const ov = overrides[exp.id];
-    return ov?.visible !== false;
-  }
-
-  // In admin mode: show all experiences (hidden ones are grayed). Otherwise filter out hidden ones.
-  const visibleData = isAdmin
-    ? experiencesData
-    : experiencesData.filter(isVisible);
-
-  const filteredData = filter === 'all'
-    ? visibleData
-    : visibleData.filter(exp => exp.category.includes(filter));
-
-  const getTagColor = (type: ExperienceData['tagType']) => {
+  const getTagColor = (type: string) => {
     switch (type) {
       case 'bestSeller': return 'bg-brand-gold text-brand-navy';
       case 'adventure': return 'bg-teal-100 text-teal-800';
@@ -62,6 +41,21 @@ export function Experiences() {
       default: return 'bg-gray-100 text-gray-800';
     }
   };
+
+  const allExperiences = apiExperiences ?? [];
+
+  // Admin sees all (grayed-out hidden ones). Public sees only visible ones.
+  const visibleData = isAdmin
+    ? allExperiences
+    : allExperiences.filter(e => e.visible);
+
+  const filteredData = filter === 'all'
+    ? visibleData
+    : visibleData.filter(e => (e.category as string[]).includes(filter));
+
+  function handleSaved() {
+    queryClient.invalidateQueries({ queryKey: getListExperiencesQueryKey() });
+  }
 
   return (
     <section id="experiencias" className="py-24 bg-brand-light">
@@ -89,11 +83,26 @@ export function Experiences() {
         </div>
 
         <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Loading skeletons */}
+          {isLoading && [...Array(6)].map((_, i) => (
+            <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-lg animate-pulse">
+              <div className="h-64 bg-brand-navy/10" />
+              <div className="p-6 space-y-3">
+                <div className="h-5 bg-brand-navy/10 rounded-lg w-3/4" />
+                <div className="h-3 bg-brand-navy/5 rounded w-full" />
+                <div className="h-3 bg-brand-navy/5 rounded w-5/6" />
+                <div className="mt-4 pt-4 border-t border-brand-navy/5 flex justify-between">
+                  <div className="h-5 bg-brand-navy/10 rounded w-16" />
+                  <div className="h-5 bg-brand-navy/10 rounded w-16" />
+                </div>
+              </div>
+            </div>
+          ))}
+
           <AnimatePresence>
-            {filteredData.map((exp) => {
+            {!isLoading && filteredData.map((exp) => {
               const itemText = resolveText(exp);
-              const imgUrl = resolveImage(exp);
-              const hidden = !isVisible(exp);
+              const hidden = !exp.visible;
 
               return (
                 <motion.div
@@ -130,7 +139,7 @@ export function Experiences() {
 
                   <div className="relative h-64 overflow-hidden bg-gradient-to-br from-brand-ocean to-brand-navy">
                     <img
-                      src={imgUrl}
+                      src={exp.imageUrl}
                       alt={itemText.title}
                       loading="lazy"
                       className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
@@ -148,7 +157,7 @@ export function Experiences() {
                     />
                     <div className="absolute top-4 left-4">
                       <span className={cn("px-3 py-1 text-[10px] font-black uppercase tracking-wider rounded-full shadow-sm", getTagColor(exp.tagType))}>
-                        {t.experiences.tags[exp.tagType]}
+                        {t.experiences.tags[exp.tagType as keyof typeof t.experiences.tags] ?? exp.tagType}
                       </span>
                     </div>
                   </div>
@@ -192,12 +201,11 @@ export function Experiences() {
         <DialogContent className="sm:max-w-2xl p-0 overflow-hidden bg-white border-none rounded-2xl">
           {selectedExp && (() => {
             const itemText = resolveText(selectedExp);
-            const imgUrl = resolveImage(selectedExp);
             return (
               <div className="flex flex-col max-h-[90vh]">
                 <div className="relative h-64 shrink-0 bg-gradient-to-br from-brand-ocean to-brand-navy">
                   <img
-                    src={imgUrl}
+                    src={selectedExp.imageUrl}
                     alt={itemText.title}
                     className="w-full h-full object-cover"
                     onError={(e) => { e.currentTarget.style.display = 'none'; }}
@@ -208,7 +216,7 @@ export function Experiences() {
                   </DialogClose>
                   <div className="absolute bottom-4 left-6">
                     <span className={cn("px-3 py-1 text-[10px] font-black uppercase tracking-wider rounded-full mb-2 inline-block shadow-sm", getTagColor(selectedExp.tagType))}>
-                      {t.experiences.tags[selectedExp.tagType]}
+                      {t.experiences.tags[selectedExp.tagType as keyof typeof t.experiences.tags] ?? selectedExp.tagType}
                     </span>
                     <DialogTitle className="text-3xl font-display text-white">{itemText.title}</DialogTitle>
                   </div>
@@ -256,10 +264,9 @@ export function Experiences() {
       {isAdmin && editingExp && (
         <ExperienceEditorModal
           exp={editingExp}
-          override={overrides[editingExp.id] ?? {}}
           open={!!editingExp}
           onClose={() => setEditingExp(null)}
-          onSaved={() => setRefreshKey(k => k + 1)}
+          onSaved={handleSaved}
         />
       )}
     </section>

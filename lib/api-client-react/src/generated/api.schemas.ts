@@ -8,3 +8,49 @@
 export interface HealthStatus {
   status: string;
 }
+
+/**
+ * Per-language text values. Keys are language codes (en, es, it, fr, ...).
+ */
+export interface I18nText {
+  [key: string]: string;
+}
+
+/**
+ * Per-language string arrays. Keys are language codes.
+ */
+export interface I18nList {
+  [key: string]: string[];
+}
+
+export interface Experience {
+  /** Stable semantic ID (e.g. 'yacht', 'atv') */
+  id: string;
+  sortOrder: number;
+  visible: boolean;
+  tagType: string;
+  category: string[];
+  imageUrl: string;
+  fallbackEmoji: string;
+  price: number;
+  durationHours: string;
+  title: I18nText;
+  desc: I18nText;
+  includes: I18nList;
+  updatedAt: string;
+}
+
+/**
+ * Fields to update on an experience. All fields are optional.
+ */
+export interface UpdateExperienceBody {
+  visible?: boolean;
+  imageUrl?: string;
+  sortOrder?: number;
+  title?: I18nText;
+  desc?: I18nText;
+}
+
+export interface ErrorResponse {
+  error: string;
+}

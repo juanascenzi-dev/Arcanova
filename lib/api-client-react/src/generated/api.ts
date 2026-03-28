@@ -5,18 +5,26 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
+  MutationFunction,
   QueryFunction,
   QueryKey,
+  UseMutationOptions,
+  UseMutationResult,
   UseQueryOptions,
   UseQueryResult,
 } from "@tanstack/react-query";
 
-import type { HealthStatus } from "./api.schemas";
+import type {
+  ErrorResponse,
+  Experience,
+  HealthStatus,
+  UpdateExperienceBody,
+} from "./api.schemas";
 
 import { customFetch } from "../custom-fetch";
-import type { ErrorType } from "../custom-fetch";
+import type { ErrorType, BodyType } from "../custom-fetch";
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
@@ -99,3 +107,167 @@ export function useHealthCheck<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * Returns experiences ordered by sort_order. Hidden experiences are included (clients should filter by visible).
+ * @summary List all experiences
+ */
+export const getListExperiencesUrl = () => {
+  return `/api/experiences`;
+};
+
+export const listExperiences = async (
+  options?: RequestInit,
+): Promise<Experience[]> => {
+  return customFetch<Experience[]>(getListExperiencesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListExperiencesQueryKey = () => {
+  return [`/api/experiences`] as const;
+};
+
+export const getListExperiencesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listExperiences>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listExperiences>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListExperiencesQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listExperiences>>> = ({
+    signal,
+  }) => listExperiences({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listExperiences>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListExperiencesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listExperiences>>
+>;
+export type ListExperiencesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all experiences
+ */
+
+export function useListExperiences<
+  TData = Awaited<ReturnType<typeof listExperiences>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listExperiences>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListExperiencesQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * Requires x-admin-token header matching the ADMIN_PIN environment variable.
+ * @summary Update an experience (admin only)
+ */
+export const getUpdateExperienceUrl = (id: string) => {
+  return `/api/experiences/${id}`;
+};
+
+export const updateExperience = async (
+  id: string,
+  updateExperienceBody: UpdateExperienceBody,
+  options?: RequestInit,
+): Promise<Experience> => {
+  return customFetch<Experience>(getUpdateExperienceUrl(id), {
+    ...options,
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateExperienceBody),
+  });
+};
+
+export const getUpdateExperienceMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateExperience>>,
+    TError,
+    { id: string; data: BodyType<UpdateExperienceBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateExperience>>,
+  TError,
+  { id: string; data: BodyType<UpdateExperienceBody> },
+  TContext
+> => {
+  const mutationKey = ["updateExperience"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateExperience>>,
+    { id: string; data: BodyType<UpdateExperienceBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateExperience(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateExperienceMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateExperience>>
+>;
+export type UpdateExperienceMutationBody = BodyType<UpdateExperienceBody>;
+export type UpdateExperienceMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Update an experience (admin only)
+ */
+export const useUpdateExperience = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateExperience>>,
+    TError,
+    { id: string; data: BodyType<UpdateExperienceBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateExperience>>,
+  TError,
+  { id: string; data: BodyType<UpdateExperienceBody> },
+  TContext
+> => {
+  return useMutation(getUpdateExperienceMutationOptions(options));
+};

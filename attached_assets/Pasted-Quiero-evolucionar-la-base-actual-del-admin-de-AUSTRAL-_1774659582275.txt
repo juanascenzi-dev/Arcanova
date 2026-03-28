@@ -1,0 +1,80 @@
+Quiero evolucionar la base actual del admin de AUSTRAL Cancún Premium.
+
+Contexto:
+
+* Ya existe `/admin`
+* Ya hay login simple con PIN
+* Ya se puede editar visualmente la sección Experiences
+* Hoy los cambios se guardan en `localStorage`, lo cual solo sirve como prototype
+* Quiero pasar de demo local a una base real y mantenible
+
+Objetivo:
+hacer que la sección Experiences deje de depender de `localStorage` y pase a persistirse de forma real, para que:
+
+* Rodri vea sus cambios en cualquier dispositivo
+* los visitantes vean el contenido actualizado real
+* el admin sea la base de un mini CMS futuro
+
+Quiero que propongas e implementes la opción más razonable según la infraestructura actual del proyecto, priorizando:
+
+* simplicidad
+* mantenibilidad
+* escalabilidad moderada
+
+## Requisitos funcionales
+
+La sección Experiences debe poder persistir como mínimo estos campos:
+
+* id
+* slug
+* visible
+* order
+* category
+* image
+* title por idioma
+* description por idioma
+
+Idealmente dejar preparada la estructura para sumar después:
+
+* tags por idioma
+* priceLabel
+* texto de CTA
+* más idiomas (`it`, `fr`)
+
+## Requisitos técnicos
+
+1. Analizá la infraestructura actual del proyecto y decime si ya existe backend/API/DB utilizable.
+2. Si existe backend y base, usalos.
+3. Si no existe, proponé la alternativa más simple pero realista para Replit.
+4. El sitio público (`/`) debe leer las experiencias desde la fuente persistida real.
+5. El admin (`/admin`) debe editar esa misma fuente real.
+6. Eliminar la dependencia principal de `localStorage` para el contenido editable de Experiences.
+7. Mantener, en lo posible, la UX actual del editor admin.
+8. No rehacer todo el proyecto.
+9. No cambiar la estética general.
+
+## Seguridad
+
+* Si el login actual con PIN queda corto para esta etapa, explicá qué mejorarías
+* Si no conviene cambiarlo todavía, dejalo claro y seguí con una solución pragmática
+
+## Entregables
+
+1. Diagnóstico de la infraestructura actual
+2. Modelo de datos sugerido para Experiences
+3. Implementación concreta o base implementada
+4. Endpoints, queries o archivos nuevos creados
+5. Archivos modificados
+6. Cómo probar el flujo completo:
+
+   * editar en admin
+   * guardar
+   * ver reflejado en la home pública
+7. Riesgos o pendientes
+8. Próximos pasos sugeridos
+
+Importante:
+
+* priorizá construir una base real antes de agregar más features cosméticas
+* no expandas todavía a Hero/About/Testimonials si Experiences aún no persiste de verdad
+* pensá esto como el primer bloque de un CMS visual real

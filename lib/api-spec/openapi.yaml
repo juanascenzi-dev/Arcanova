@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: experiences
+    description: Experience management
 paths:
   /healthz:
     get:
@@ -24,6 +26,58 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /experiences:
+    get:
+      operationId: listExperiences
+      tags: [experiences]
+      summary: List all experiences
+      description: Returns experiences ordered by sort_order. Hidden experiences are included (clients should filter by visible).
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Experience"
+  /experiences/{id}:
+    patch:
+      operationId: updateExperience
+      tags: [experiences]
+      summary: Update an experience (admin only)
+      description: Requires x-admin-token header matching the ADMIN_PIN environment variable.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateExperienceBody"
+      responses:
+        "200":
+          description: Updated experience
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Experience"
+        "401":
+          description: Unauthorized — missing or invalid admin token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Experience not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +87,83 @@ components:
           type: string
       required:
         - status
-
+    I18nText:
+      type: object
+      description: Per-language text values. Keys are language codes (en, es, it, fr, ...).
+      additionalProperties:
+        type: string
+    I18nList:
+      type: object
+      description: Per-language string arrays. Keys are language codes.
+      additionalProperties:
+        type: array
+        items:
+          type: string
+    Experience:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Stable semantic ID (e.g. 'yacht', 'atv')
+        sortOrder:
+          type: integer
+        visible:
+          type: boolean
+        tagType:
+          type: string
+        category:
+          type: array
+          items:
+            type: string
+        imageUrl:
+          type: string
+        fallbackEmoji:
+          type: string
+        price:
+          type: integer
+        durationHours:
+          type: string
+        title:
+          $ref: "#/components/schemas/I18nText"
+        desc:
+          $ref: "#/components/schemas/I18nText"
+        includes:
+          $ref: "#/components/schemas/I18nList"
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - sortOrder
+        - visible
+        - tagType
+        - category
+        - imageUrl
+        - fallbackEmoji
+        - price
+        - durationHours
+        - title
+        - desc
+        - includes
+        - updatedAt
+    UpdateExperienceBody:
+      type: object
+      description: Fields to update on an experience. All fields are optional.
+      properties:
+        visible:
+          type: boolean
+        imageUrl:
+          type: string
+        sortOrder:
+          type: integer
+        title:
+          $ref: "#/components/schemas/I18nText"
+        desc:
+          $ref: "#/components/schemas/I18nText"
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error

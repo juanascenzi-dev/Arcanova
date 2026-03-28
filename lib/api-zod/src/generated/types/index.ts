@@ -6,4 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 
+export * from "./errorResponse";
+export * from "./experience";
 export * from "./healthStatus";
+export * from "./i18nList";
+export * from "./i18nText";
+export * from "./updateExperienceBody";

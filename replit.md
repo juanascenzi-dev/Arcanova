@@ -58,7 +58,8 @@ A luxury tourism landing page for AUSTRAL Cancún Premium — a premium tour ope
 - **Authentication**: password via `VITE_ADMIN_PIN` env secret (default: `austral2025`); session in `sessionStorage`
 - **AdminTopBar**: gold banner at top while in admin mode, with logout button
 - **Experience editing**: pencil icon on card hover → modal to edit title (EN+ES), description (EN+ES), image URL, visible toggle
-- **Persistence**: admin overrides stored in `localStorage` under `austral_exp_overrides`
+- **Persistence**: admin edits PATCH `/api/experiences/:id` with `x-admin-token` header → persisted in PostgreSQL
+- **Server auth**: API validates `x-admin-token` against `ADMIN_PIN` env var (falls back to `VITE_ADMIN_PIN` then `austral2025`)
 - **Visibility control**: hidden experiences show grayed/ghosted only to admin; public visitors never see them
 
 ### Admin Key Files
@@ -77,13 +78,21 @@ A luxury tourism landing page for AUSTRAL Cancún Premium — a premium tour ope
 
 ### Key Files
 - `src/contexts/i18n.tsx` — Complete ES/EN translation system with React Context
-- `src/data/experiences.ts` — Experience cards data (price, images, categories, visible flag)
+- `src/data/experiences.ts` — Static seed types (price, categories, emojis — supplemented by API data)
 - `src/lib/leads.ts` — Lead capture (localStorage) + CONTACT_CONFIG for WhatsApp/email/Facebook
 - `src/components/Logo.tsx` — Reusable ship wheel SVG component
 - `src/components/Hero.tsx` — Carousel hero with watermark
-- `src/components/Experiences.tsx` — Filterable grid with modal + admin overlay
+- `src/components/Experiences.tsx` — Fetches from API via `useListExperiences()`, filterable grid with modal + admin overlay
+- `src/components/admin/ExperienceEditorModal.tsx` — PATCHes `/api/experiences/:id` with admin token
 - `src/components/WhatsAppButton.tsx` — Floating WhatsApp CTA
 - `src/components/ScrollToTopButton.tsx` — Scroll-to-top with wave icon
+
+### Data Architecture (Backend)
+- **Schema**: `lib/db/src/schema/experiences.ts` — Drizzle `experiences` table with JSONB columns for `title`, `desc`, `includes` (multi-language, no migration needed to add new languages)
+- **API**: `GET /api/experiences` (public, ordered by `sort_order`) and `PATCH /api/experiences/:id` (admin auth via `x-admin-token` header)
+- **Seed**: `artifacts/api-server/src/seed.ts` — 6 experiences with EN+ES translations; run with `npx tsx artifacts/api-server/src/seed.ts`
+- **Vite proxy**: `/api` → `http://localhost:8080` in development via `server.proxy` in `vite.config.ts`
+- **Codegen**: `pnpm --filter @workspace/api-spec run codegen` → regenerates React Query hooks in `lib/api-client-react/src/generated/api.ts`
 
 ### Color Palette
 | Name       | Hex       | Usage                                  |

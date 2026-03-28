@@ -14,3 +14,88 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * Returns experiences ordered by sort_order. Hidden experiences are included (clients should filter by visible).
+ * @summary List all experiences
+ */
+export const ListExperiencesResponseItem = zod.object({
+  id: zod.string().describe("Stable semantic ID (e.g. 'yacht', 'atv')"),
+  sortOrder: zod.number(),
+  visible: zod.boolean(),
+  tagType: zod.string(),
+  category: zod.array(zod.string()),
+  imageUrl: zod.string(),
+  fallbackEmoji: zod.string(),
+  price: zod.number(),
+  durationHours: zod.string(),
+  title: zod
+    .record(zod.string(), zod.string())
+    .describe(
+      "Per-language text values. Keys are language codes (en, es, it, fr, ...).",
+    ),
+  desc: zod
+    .record(zod.string(), zod.string())
+    .describe(
+      "Per-language text values. Keys are language codes (en, es, it, fr, ...).",
+    ),
+  includes: zod
+    .record(zod.string(), zod.array(zod.string()))
+    .describe("Per-language string arrays. Keys are language codes."),
+  updatedAt: zod.date(),
+});
+export const ListExperiencesResponse = zod.array(ListExperiencesResponseItem);
+
+/**
+ * Requires x-admin-token header matching the ADMIN_PIN environment variable.
+ * @summary Update an experience (admin only)
+ */
+export const UpdateExperienceParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const UpdateExperienceBody = zod
+  .object({
+    visible: zod.boolean().optional(),
+    imageUrl: zod.string().optional(),
+    sortOrder: zod.number().optional(),
+    title: zod
+      .record(zod.string(), zod.string())
+      .optional()
+      .describe(
+        "Per-language text values. Keys are language codes (en, es, it, fr, ...).",
+      ),
+    desc: zod
+      .record(zod.string(), zod.string())
+      .optional()
+      .describe(
+        "Per-language text values. Keys are language codes (en, es, it, fr, ...).",
+      ),
+  })
+  .describe("Fields to update on an experience. All fields are optional.");
+
+export const UpdateExperienceResponse = zod.object({
+  id: zod.string().describe("Stable semantic ID (e.g. 'yacht', 'atv')"),
+  sortOrder: zod.number(),
+  visible: zod.boolean(),
+  tagType: zod.string(),
+  category: zod.array(zod.string()),
+  imageUrl: zod.string(),
+  fallbackEmoji: zod.string(),
+  price: zod.number(),
+  durationHours: zod.string(),
+  title: zod
+    .record(zod.string(), zod.string())
+    .describe(
+      "Per-language text values. Keys are language codes (en, es, it, fr, ...).",
+    ),
+  desc: zod
+    .record(zod.string(), zod.string())
+    .describe(
+      "Per-language text values. Keys are language codes (en, es, it, fr, ...).",
+    ),
+  includes: zod
+    .record(zod.string(), zod.array(zod.string()))
+    .describe("Per-language string arrays. Keys are language codes."),
+  updatedAt: zod.date(),
+});
