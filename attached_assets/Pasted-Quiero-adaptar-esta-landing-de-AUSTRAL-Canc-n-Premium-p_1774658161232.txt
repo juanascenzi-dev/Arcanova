@@ -1,0 +1,67 @@
+Quiero adaptar esta landing de AUSTRAL Cancún Premium para que NO venda directamente en la web y NO tenga pasarela de pagos.
+
+Objetivo de negocio:
+la web debe funcionar como vitrina de experiencias y derivar el cierre comercial a canales directos:
+
+* Facebook
+* Gmail / email
+* WhatsApp
+
+Necesito que propongas e implementes una solución UX simple y mantenible con estas reglas:
+
+1. Reemplazar la lógica de “reservar” por una lógica de “consultar / iniciar contacto”.
+2. En cada experiencia y/o modal, permitir que el usuario:
+
+   * vea la experiencia
+   * indique interés
+   * elija canal de contacto
+3. Generar mensajes automáticos prearmados según el canal elegido, incluyendo como mínimo:
+
+   * nombre de la experiencia
+   * fecha tentativa si el usuario la indicó
+   * cantidad de personas si la indicó
+   * idioma actual
+   * texto amable de consulta
+4. Soportar estos canales:
+
+   * WhatsApp con link `wa.me`
+   * Email con `mailto:`
+   * Facebook con CTA claro (si no hay integración directa a mensaje, preparar flujo razonable y texto sugerido)
+5. Antes de redirigir al canal, guardar un resumen del interés del usuario para seguimiento comercial.
+
+Quiero que diseñes una solución liviana para capturar ese resumen, por ejemplo:
+
+* experiencia principal elegida
+* otras experiencias vistas o seleccionadas
+* categoría explorada
+* fecha tentativa
+* personas
+* canal elegido
+* timestamp
+
+Ese resumen debe quedar listo para que Rodri lo pueda revisar o recibir de forma simple.
+Si no existe backend, proponé la alternativa más sencilla y realista para implementarlo en este proyecto.
+
+Además:
+
+* actualizar el copy de la web para aclarar que el cierre de la reserva se hace por contacto directo
+* evitar lenguaje de ecommerce
+* mantener la estética premium actual
+* respetar el sistema i18n ES/EN
+* no agregar complejidad innecesaria
+
+Entregables:
+
+1. propuesta UX concreta
+2. archivos a modificar
+3. implementación sugerida
+4. textos/copies a cambiar
+5. estrategia técnica para que Rodri reciba el resumen del interés del usuario
+6. recomendaciones para integrar Facebook, WhatsApp Business y email de forma coherente con la web
+
+Importante:
+
+* priorizar simplicidad comercial real
+* no inventar checkout
+* no inventar pagos
+* la web debe ayudar a descubrir, interesarse y contactar

@@ -110,6 +110,20 @@ type Translations = {
       rights: string;
       passion: string;
     };
+    inquiry: {
+      title: string;
+      subtitle: string;
+      dateLabel: string;
+      peopleLabel: string;
+      whatsapp: string;
+      email: string;
+      facebook: string;
+      facebookCopy: string;
+      goToFacebook: string;
+      back: string;
+      copied: string;
+      note: string;
+    };
   }
 };
 
@@ -120,7 +134,7 @@ const translations: Translations = {
       about: "Nosotros",
       testimonials: "Testimonios",
       contact: "Contacto",
-      bookNow: "Reservar Ahora"
+      bookNow: "Consultar Ahora"
     },
     hero: {
       titleStart: "Tu aventura ",
@@ -244,6 +258,20 @@ const translations: Translations = {
       social: "Redes Sociales",
       rights: "AUSTRAL Cancún Premium. Todos los derechos reservados.",
       passion: "Hecho con pasión desde Argentina 🇦🇷"
+    },
+    inquiry: {
+      title: "¿Te interesa esta experiencia?",
+      subtitle: "Indicá una fecha y cantidad de personas (opcional) y elegí cómo querés consultarnos.",
+      dateLabel: "Fecha tentativa",
+      peopleLabel: "¿Cuántos son?",
+      whatsapp: "Consultar por WhatsApp",
+      email: "Consultar por Email",
+      facebook: "Consultar por Facebook",
+      facebookCopy: "Copiá este mensaje y pegalo en Facebook:",
+      goToFacebook: "Abrir Facebook",
+      back: "Volver",
+      copied: "¡Copiado al portapapeles!",
+      note: "No realizamos cobros por la web. El cierre de la reserva se coordina directamente con vos."
     }
   },
   en: {
@@ -252,7 +280,7 @@ const translations: Translations = {
       about: "About Us",
       testimonials: "Testimonials",
       contact: "Contact",
-      bookNow: "Book Now"
+      bookNow: "Inquire Now"
     },
     hero: {
       titleStart: "Your ",
@@ -376,6 +404,20 @@ const translations: Translations = {
       social: "Social Media",
       rights: "AUSTRAL Cancún Premium. All rights reserved.",
       passion: "Made with passion from Argentina 🇦🇷"
+    },
+    inquiry: {
+      title: "Interested in this experience?",
+      subtitle: "Add an optional date and group size, then choose how you'd like to reach us.",
+      dateLabel: "Estimated date",
+      peopleLabel: "How many people?",
+      whatsapp: "Inquire via WhatsApp",
+      email: "Inquire via Email",
+      facebook: "Inquire via Facebook",
+      facebookCopy: "Copy this message and paste it on Facebook:",
+      goToFacebook: "Open Facebook",
+      back: "Go back",
+      copied: "Copied to clipboard!",
+      note: "We don't process payments online. Booking is confirmed directly with you."
     }
   }
 };

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Check, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { ContactChannelSelector } from '@/components/ContactChannelSelector';
 
 export function Experiences() {
   const { t } = useTranslation();
@@ -25,13 +26,6 @@ export function Experiences() {
       case 'planB': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
-  };
-
-  const scrollToContact = () => {
-    setSelectedExp(null);
-    setTimeout(() => {
-      document.getElementById('contacto')?.scrollIntoView({ behavior: 'smooth' });
-    }, 150);
   };
 
   return (
@@ -181,7 +175,7 @@ export function Experiences() {
                   </p>
 
                   <h4 className="font-bold text-brand-navy mb-3">{t.experiences.labels.includes}</h4>
-                  <ul className="space-y-2 mb-8">
+                  <ul className="space-y-2 mb-6">
                     {itemText.includes.map((inc, i) => (
                       <li key={i} className="flex items-start gap-2">
                         <Check className="w-5 h-5 text-brand-gold shrink-0 mt-0.5" />
@@ -190,12 +184,11 @@ export function Experiences() {
                     ))}
                   </ul>
 
-                  <button 
-                    onClick={scrollToContact}
-                    className="w-full py-4 bg-brand-gold text-brand-navy font-bold rounded-xl shadow-lg shadow-brand-gold/30 hover:bg-brand-navy hover:text-white transition-all duration-300"
-                  >
-                    {t.experiences.labels.bookThis}
-                  </button>
+                  <ContactChannelSelector
+                    experienceId={selectedExp.id}
+                    experienceName={itemText.title}
+                    onClose={() => setSelectedExp(null)}
+                  />
                 </div>
               </div>
             )
