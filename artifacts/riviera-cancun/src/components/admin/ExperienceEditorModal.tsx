@@ -116,13 +116,10 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
               ID: <code className="bg-brand-navy/10 px-1 rounded font-mono">{exp.id}</code>
             </p>
           </div>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-brand-navy/5 transition-colors disabled:opacity-50" disabled={saving}>
-            <X className="w-5 h-5 text-brand-navy/40" />
-          </button>
         </div>
 
         {/* Body */}
-        <div className="overflow-y-auto p-6 space-y-5 flex-1">
+        <div className="overflow-y-auto p-6 space-y-6 flex-1">
           {/* Success message */}
           {success && (
             <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
@@ -150,7 +147,7 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
               disabled={saving}
               className={`w-12 h-6 rounded-full transition-colors relative disabled:opacity-50 ${visible ? 'bg-brand-gold' : 'bg-brand-navy/20'}`}
             >
-              <span className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform shadow-sm ${visible ? 'translate-x-7' : 'translate-x-1'}`} />
+              <span className={`absolute inset-y-1 w-4 h-4 rounded-full bg-white transition-transform shadow-sm ${visible ? 'right-1' : 'left-1'}`} />
             </button>
           </div>
 
@@ -240,7 +237,7 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
                 placeholder="https://images.unsplash.com/..."
               />
               {imageUrl && (
-                <div className="mt-2 h-28 rounded-xl overflow-hidden bg-gradient-to-br from-brand-ocean to-brand-navy">
+                <div className="mt-3 h-32 rounded-xl overflow-hidden bg-gradient-to-br from-brand-ocean to-brand-navy border border-brand-navy/10">
                   {!imgPreviewError ? (
                     <img src={imageUrl} alt="preview" className="w-full h-full object-cover" onError={() => setImgPreviewError(true)} />
                   ) : (
@@ -333,7 +330,7 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end px-6 py-4 border-t border-brand-navy/10 shrink-0 gap-3">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-brand-navy/10 shrink-0 gap-3 bg-brand-light/50">
           <button
             onClick={onClose}
             disabled={saving}

@@ -1,27 +1,13 @@
 import { useState } from 'react';
-import { Home as HomeIcon, MessageSquare, LogOut } from 'lucide-react';
-import { useAdmin } from '@/contexts/AdminContext';
+import { Home as HomeIcon, MessageSquare } from 'lucide-react';
 import Home from '@/pages/Home';
 import { LeadsPanel } from '@/components/admin/LeadsPanel';
 
 export function AdminDashboard() {
   const [section, setSection] = useState<'experiences' | 'leads'>('experiences');
-  const { logout } = useAdmin();
 
   return (
-    <div className="min-h-screen bg-brand-light">
-      {/* Gold admin bar */}
-      <div className="bg-brand-gold text-brand-navy px-6 py-4 shadow-lg flex items-center justify-between sticky top-0 z-40">
-        <h1 className="text-xl font-bold font-display">AUSTRAL Cancún Premium — Admin</h1>
-        <button
-          onClick={logout}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-navy text-white hover:bg-brand-navy/90 transition-colors font-bold text-sm"
-        >
-          <LogOut className="w-4 h-4" />
-          Salir
-        </button>
-      </div>
-
+    <div className="min-h-screen bg-brand-light pt-20 md:pt-24">
       {/* Tabs */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex gap-2 mb-8 border-b border-brand-navy/10">

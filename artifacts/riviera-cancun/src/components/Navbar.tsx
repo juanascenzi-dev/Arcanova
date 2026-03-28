@@ -8,7 +8,7 @@ import { Logo } from '@/components/Logo';
 
 export function Navbar() {
   const { lang, setLang, t } = useTranslation();
-  const { isAdmin } = useAdmin();
+  const { isAdmin, logout } = useAdmin();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -37,8 +37,8 @@ export function Navbar() {
     <nav 
       className={cn(
         "fixed left-0 right-0 z-50 transition-all duration-300",
-        isAdmin ? "top-10" : "top-0",
-        isScrolled ? "glass-nav py-3 shadow-lg" : "bg-transparent py-5"
+        "top-0",
+        isScrolled || isAdmin ? "glass-nav py-3 shadow-lg" : "bg-transparent py-5"
       )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
@@ -55,20 +55,30 @@ export function Navbar() {
         </div>
 
         {/* Desktop Nav */}
-        <div className="hidden lg:flex items-center gap-8">
-          <div className="flex gap-6">
-            {navLinks.map((link) => (
-              <button
-                key={link.id}
-                onClick={() => scrollTo(link.id)}
-                className="text-sm font-medium text-white/90 hover:text-brand-gold transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-px after:bg-brand-gold hover:after:w-full after:transition-all after:duration-300"
-              >
-                {link.name}
-              </button>
-            ))}
-          </div>
+        <div className="hidden lg:flex items-center gap-6">
+          {!isAdmin && (
+            <>
+              <div className="flex gap-6">
+                {navLinks.map((link) => (
+                  <button
+                    key={link.id}
+                    onClick={() => scrollTo(link.id)}
+                    className="text-sm font-medium text-white/90 hover:text-brand-gold transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-px after:bg-brand-gold hover:after:w-full after:transition-all after:duration-300"
+                  >
+                    {link.name}
+                  </button>
+                ))}
+              </div>
 
-          <div className="h-6 w-px bg-white/20 mx-2" />
+              <div className="h-6 w-px bg-white/20" />
+            </>
+          )}
+
+          {isAdmin && (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-brand-gold/20 border border-brand-gold/40 rounded-full">
+              <span className="text-xs font-bold uppercase tracking-wider text-brand-gold">Modo Admin</span>
+            </div>
+          )}
 
           {/* Lang Toggle */}
           <div className="flex items-center bg-white/10 rounded-full p-1 border border-white/10">
@@ -86,12 +96,23 @@ export function Navbar() {
             </button>
           </div>
 
-          <button 
-            onClick={() => scrollTo('contacto')}
-            className="px-6 py-2.5 bg-brand-gold text-brand-navy font-semibold rounded-lg hover:bg-white hover:text-brand-navy transition-all duration-300 shadow-[0_0_15px_rgba(201,168,76,0.3)] hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] transform hover:-translate-y-0.5"
-          >
-            {t.nav.bookNow}
-          </button>
+          {!isAdmin && (
+            <button 
+              onClick={() => scrollTo('contacto')}
+              className="px-6 py-2.5 bg-brand-gold text-brand-navy font-semibold rounded-lg hover:bg-white hover:text-brand-navy transition-all duration-300 shadow-[0_0_15px_rgba(201,168,76,0.3)] hover:shadow-[0_0_20px_rgba(255,255,255,0.4)] transform hover:-translate-y-0.5"
+            >
+              {t.nav.bookNow}
+            </button>
+          )}
+
+          {isAdmin && (
+            <button 
+              onClick={logout}
+              className="px-4 py-2 text-xs font-bold uppercase tracking-wider bg-brand-navy text-white rounded-lg hover:bg-brand-navy/80 transition-colors border border-white/10"
+            >
+              Salir
+            </button>
+          )}
         </div>
 
         {/* Mobile Toggle */}
@@ -112,7 +133,7 @@ export function Navbar() {
             exit={{ opacity: 0, y: -20 }}
             className="absolute top-full left-0 right-0 bg-brand-navy border-b border-white/10 p-4 flex flex-col gap-4 shadow-2xl lg:hidden"
           >
-            {navLinks.map((link) => (
+            {!isAdmin && navLinks.map((link) => (
               <button
                 key={link.id}
                 onClick={() => scrollTo(link.id)}
@@ -121,6 +142,12 @@ export function Navbar() {
                 {link.name}
               </button>
             ))}
+
+            {isAdmin && (
+              <div className="px-2 py-1">
+                <span className="text-xs font-bold uppercase tracking-wider text-brand-gold">Modo Admin</span>
+              </div>
+            )}
             
             <div className="flex gap-4 p-2">
                <button 
@@ -137,12 +164,23 @@ export function Navbar() {
               </button>
             </div>
 
-            <button 
-              onClick={() => scrollTo('contacto')}
-              className="w-full mt-2 px-6 py-3 bg-brand-gold text-brand-navy font-bold rounded-lg"
-            >
-              {t.nav.bookNow}
-            </button>
+            {!isAdmin && (
+              <button 
+                onClick={() => scrollTo('contacto')}
+                className="w-full mt-2 px-6 py-3 bg-brand-gold text-brand-navy font-bold rounded-lg"
+              >
+                {t.nav.bookNow}
+              </button>
+            )}
+
+            {isAdmin && (
+              <button 
+                onClick={logout}
+                className="w-full px-6 py-3 bg-brand-navy text-white font-bold rounded-lg border border-white/20 hover:bg-brand-navy/80 transition-colors"
+              >
+                Salir
+              </button>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

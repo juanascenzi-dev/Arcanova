@@ -1,0 +1,106 @@
+Quiero una pasada de corrección visual y UX sobre el modo admin de AUSTRAL Cancún Premium.
+
+Contexto:
+
+* Ya existe `/admin`
+* Experiences y Leads funcionan
+* El problema ahora no es funcional sino de interfaz y consistencia visual
+* Hay varios detalles rotos o confusos en la experiencia de edición admin
+
+Quiero que revises y corrijas específicamente estos problemas:
+
+## Problemas detectados
+
+### 1. Barra superior de admin rompe el layout
+
+Hoy existe una franja/banner superior tipo “MODO ADMIN” separada del navbar.
+Cuando el usuario está exactamente en la parte más alta de la web, esa barra rompe el diseño y genera una sensación visual incorrecta.
+
+Quiero:
+
+* eliminar esa barra superior independiente
+* integrar el estado admin dentro del navbar existente
+* agregar dentro del navbar una indicación clara pero elegante, por ejemplo:
+
+  * badge o pill “Modo Admin”
+  * junto con acciones como “Ver sitio público” y “Salir”
+* evitar empujar/brincar el layout vertical por una barra extra
+
+### 2. Switch/toggle visual roto
+
+El control de “Visible en el sitio” se ve desalineado/roto visualmente.
+
+Quiero:
+
+* revisar el componente switch/toggle
+* asegurar que el thumb, track, estados checked/unchecked y focus estén bien alineados
+* revisar tamaños, padding, border-radius, colores y estados disabled/loading
+* dejarlo visualmente consistente con el estilo premium del sitio
+
+### 3. Doble botón para cerrar modal
+
+En el modal de editar experiencia aparecen dos íconos/botones de cierre muy cerca entre sí.
+
+Quiero:
+
+* dejar un solo botón de cierre
+* asegurarse de que sea consistente con el sistema de modales de la app
+* revisar si Radix/Dialog ya está renderizando uno por defecto y además hay otro custom duplicado
+
+### 4. Error genérico “Validation failed”
+
+Cuando algo falla, el modal muestra un mensaje demasiado genérico.
+
+Quiero:
+
+* mostrar errores útiles y claros para el admin
+* si el backend devuelve detalles, mapearlos visualmente de manera entendible
+* evitar mensajes técnicos vacíos
+* idealmente mostrar:
+
+  * error general arriba
+  * y si aplica, error por campo
+
+### 5. Problemas de spacing, overflow y preview en el modal
+
+Veo señales de:
+
+* preview de imagen cortado o mal espaciado
+* scroll interno algo tosco
+* bloques con demasiado poco aire visual
+* posible conflicto entre altura del modal y contenido largo
+
+Quiero:
+
+* revisar el layout completo del modal
+* mejorar spacing vertical
+* asegurar preview de imagen prolijo
+* revisar max-height, overflow-y, header/footer sticky si conviene
+* hacer que el modal sea usable sin verse apretado
+
+## Objetivo general
+
+Dejar el modo admin:
+
+* visualmente limpio
+* consistente con la estética premium
+* sin elementos duplicados
+* sin layout shift raro
+* sin controles rotos
+
+## Qué quiero como entrega
+
+1. diagnóstico técnico corto de por qué pasaban estos problemas
+2. implementación de los fixes
+3. archivos modificados
+4. breve resumen visual/UX de lo mejorado
+5. aclarar si había componentes duplicados o mal compuestos
+6. si encontrás otros bugs visuales relacionados en admin, corregilos también dentro de este mismo scope
+
+## Importante
+
+* no rehagas el diseño general
+* no agregues features nuevas
+* enfocate en pulido visual, consistencia y UX admin
+* mantené el look premium del sitio
+* priorizá arreglos concretos sobre refactors grandes
