@@ -40,11 +40,12 @@ artifacts-monorepo/
 A luxury tourism landing page for AUSTRAL Cancún Premium — a premium tour operator in Cancún & Riviera Maya, Mexico. Argentine-owned (subtle nod in the footer).
 
 ### Features
-- **Fully bilingual (ES/EN)** — React Context i18n system, browser language auto-detection, localStorage persistence
+- **Fully bilingual (ES/EN)** — React Context i18n, default EN, localStorage preference persistence, extensible for IT/FR
 - **Hero carousel** — 6 Unsplash images rotating every 10s with 1.5s crossfade transition
 - **Ship wheel (timón) SVG logo** — custom inline SVG, reusable `<Logo />` component with size/color props
 - **Slowly rotating ship wheel watermark** in the hero background (60s CSS animation, 8% opacity)
 - **6 experience cards** with real Unsplash images, category filter tabs, and detail modals
+- **Inquiry flow** — ContactChannelSelector in modals: WhatsApp, Email, Facebook. Leads saved to localStorage.
 - **Image error fallback** — `onError` handler shows gradient + emoji if Unsplash fails
 - **Scroll-to-top button** — appears after 400px scroll, themed with wave/arrow SVG, gold color
 - **WhatsApp floating button** — always visible, links to wa.me/529981234567
@@ -52,12 +53,35 @@ A luxury tourism landing page for AUSTRAL Cancún Premium — a premium tour ope
 - **Mobile-first responsive** — hamburger nav, single-column cards on mobile
 - **SEO** — meta title/description/OG tags in index.html
 
+### Admin Panel (`/admin`)
+- **Route**: `/admin` — shows login screen unless authenticated
+- **Authentication**: password via `VITE_ADMIN_PIN` env secret (default: `austral2025`); session in `sessionStorage`
+- **AdminTopBar**: gold banner at top while in admin mode, with logout button
+- **Experience editing**: pencil icon on card hover → modal to edit title (EN+ES), description (EN+ES), image URL, visible toggle
+- **Persistence**: admin overrides stored in `localStorage` under `austral_exp_overrides`
+- **Visibility control**: hidden experiences show grayed/ghosted only to admin; public visitors never see them
+
+### Admin Key Files
+- `src/contexts/AdminContext.tsx` — auth state, login/logout, sessionStorage session
+- `src/lib/adminStorage.ts` — localStorage helpers for per-experience overrides
+- `src/components/admin/AdminLogin.tsx` — styled login screen
+- `src/components/admin/AdminTopBar.tsx` — gold admin indicator bar
+- `src/components/admin/ExperienceEditorModal.tsx` — edit modal (title EN/ES, desc EN/ES, image, visible)
+- `src/pages/Admin.tsx` — route handler (shows AdminLogin or Home with admin overlays)
+
+### i18n Architecture
+- `src/contexts/i18n.tsx` exports: `SUPPORTED_LANGUAGES`, `DEFAULT_LANGUAGE` ('en'), `FALLBACK_LANGUAGE` ('en'), `getTranslation(lang)`
+- Adding a new language: add to `SUPPORTED_LANGUAGES` array + add full translation object in `translations`
+- Experience item keys: `yacht`, `atv`, `bungee`, `chichenitza`, `transfers`, `rainday` (semantic, no longer fragile `id1..id6`)
+- No browser auto-detection: defaults to EN, respects saved user preference
+
 ### Key Files
 - `src/contexts/i18n.tsx` — Complete ES/EN translation system with React Context
-- `src/data/experiences.ts` — Experience cards data (price, images, categories)
+- `src/data/experiences.ts` — Experience cards data (price, images, categories, visible flag)
+- `src/lib/leads.ts` — Lead capture (localStorage) + CONTACT_CONFIG for WhatsApp/email/Facebook
 - `src/components/Logo.tsx` — Reusable ship wheel SVG component
 - `src/components/Hero.tsx` — Carousel hero with watermark
-- `src/components/Experiences.tsx` — Filterable grid with modal
+- `src/components/Experiences.tsx` — Filterable grid with modal + admin overlay
 - `src/components/WhatsAppButton.tsx` — Floating WhatsApp CTA
 - `src/components/ScrollToTopButton.tsx` — Scroll-to-top with wave icon
 

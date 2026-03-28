@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/contexts/i18n';
+import { useAdmin } from '@/contexts/AdminContext';
 import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -7,6 +8,7 @@ import { Logo } from '@/components/Logo';
 
 export function Navbar() {
   const { lang, setLang, t } = useTranslation();
+  const { isAdmin } = useAdmin();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -34,7 +36,8 @@ export function Navbar() {
   return (
     <nav 
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
+        "fixed left-0 right-0 z-50 transition-all duration-300",
+        isAdmin ? "top-10" : "top-0",
         isScrolled ? "glass-nav py-3 shadow-lg" : "bg-transparent py-5"
       )}
     >

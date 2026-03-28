@@ -1,23 +1,58 @@
 import { useState } from 'react';
 import { useTranslation } from '@/contexts/i18n';
+import { useAdmin } from '@/contexts/AdminContext';
 import { experiencesData, type Category, type ExperienceData } from '@/data/experiences';
+import { getAdminOverrides } from '@/lib/adminStorage';
+import { ExperienceEditorModal } from '@/components/admin/ExperienceEditorModal';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, Check, X } from 'lucide-react';
+import { Clock, Check, X, Pencil, EyeOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { ContactChannelSelector } from '@/components/ContactChannelSelector';
 
 export function Experiences() {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
+  const { isAdmin } = useAdmin();
   const [filter, setFilter] = useState<Category | 'all'>('all');
   const [selectedExp, setSelectedExp] = useState<ExperienceData | null>(null);
+  const [editingExp, setEditingExp] = useState<ExperienceData | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const filteredData = filter === 'all' 
-    ? experiencesData 
-    : experiencesData.filter(exp => exp.category.includes(filter));
+  // Load admin overrides fresh each render (refreshKey forces re-read)
+  const overrides = getAdminOverrides();
+  void refreshKey; // consumed so React doesn't warn
+
+  // Resolve display values for an experience (apply admin overrides)
+  function resolveText(exp: ExperienceData) {
+    const base = t.experiences.items[exp.id as keyof typeof t.experiences.items];
+    const ov = overrides[exp.id];
+    return {
+      title: (lang === 'en' ? ov?.title?.en : ov?.title?.es) ?? base.title,
+      desc: (lang === 'en' ? ov?.desc?.en : ov?.desc?.es) ?? base.desc,
+      includes: base.includes,
+    };
+  }
+
+  function resolveImage(exp: ExperienceData): string {
+    return overrides[exp.id]?.imageUrl ?? exp.imageUrl;
+  }
+
+  function isVisible(exp: ExperienceData): boolean {
+    const ov = overrides[exp.id];
+    return ov?.visible !== false;
+  }
+
+  // In admin mode: show all experiences (hidden ones are grayed). Otherwise filter out hidden ones.
+  const visibleData = isAdmin
+    ? experiencesData
+    : experiencesData.filter(isVisible);
+
+  const filteredData = filter === 'all'
+    ? visibleData
+    : visibleData.filter(exp => exp.category.includes(filter));
 
   const getTagColor = (type: ExperienceData['tagType']) => {
-    switch(type) {
+    switch (type) {
       case 'bestSeller': return 'bg-brand-gold text-brand-navy';
       case 'adventure': return 'bg-teal-100 text-teal-800';
       case 'extreme': return 'bg-brand-coral text-white';
@@ -31,10 +66,10 @@ export function Experiences() {
   return (
     <section id="experiencias" className="py-24 bg-brand-light">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         <div className="text-center mb-12">
           <h2 className="text-4xl md:text-5xl text-brand-navy mb-8">{t.experiences.title}</h2>
-          
+
           <div className="flex flex-wrap justify-center gap-2">
             {(['all', 'adventure', 'relax', 'cultural'] as const).map((cat) => (
               <button
@@ -42,8 +77,8 @@ export function Experiences() {
                 onClick={() => setFilter(cat)}
                 className={cn(
                   "px-6 py-2 rounded-full text-sm font-bold transition-all duration-300",
-                  filter === cat 
-                    ? "bg-brand-navy text-white shadow-md" 
+                  filter === cat
+                    ? "bg-brand-navy text-white shadow-md"
                     : "bg-white text-brand-navy/60 border border-brand-navy/10 hover:border-brand-gold hover:text-brand-navy"
                 )}
               >
@@ -53,14 +88,13 @@ export function Experiences() {
           </div>
         </div>
 
-        <motion.div 
-          layout
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-        >
+        <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <AnimatePresence>
             {filteredData.map((exp) => {
-              const itemText = t.experiences.items[exp.id as keyof typeof t.experiences.items];
-              
+              const itemText = resolveText(exp);
+              const imgUrl = resolveImage(exp);
+              const hidden = !isVisible(exp);
+
               return (
                 <motion.div
                   layout
@@ -69,12 +103,35 @@ export function Experiences() {
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.3 }}
                   key={exp.id}
-                  className="bg-white rounded-2xl overflow-hidden shadow-lg shadow-black/5 border border-brand-navy/5 group hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col"
+                  className={cn(
+                    "relative bg-white rounded-2xl overflow-hidden shadow-lg shadow-black/5 border border-brand-navy/5 group hover:shadow-xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col",
+                    isAdmin && hidden && "opacity-40 grayscale"
+                  )}
                 >
+                  {/* Admin hidden badge */}
+                  {isAdmin && hidden && (
+                    <div className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none">
+                      <span className="flex items-center gap-1.5 bg-brand-navy text-white text-xs px-3 py-1.5 rounded-full font-bold shadow-lg">
+                        <EyeOff className="w-3.5 h-3.5" /> Oculto
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Admin edit pencil */}
+                  {isAdmin && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setEditingExp(exp); }}
+                      title="Editar experiencia"
+                      className="absolute top-3 right-3 z-30 w-9 h-9 bg-white rounded-full shadow-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-brand-gold hover:text-brand-navy text-brand-navy"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                  )}
+
                   <div className="relative h-64 overflow-hidden bg-gradient-to-br from-brand-ocean to-brand-navy">
-                    <img 
-                      src={exp.imageUrl} 
-                      alt={itemText.title} 
+                    <img
+                      src={imgUrl}
+                      alt={itemText.title}
                       loading="lazy"
                       className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
                       onError={(e) => {
@@ -95,13 +152,13 @@ export function Experiences() {
                       </span>
                     </div>
                   </div>
-                  
+
                   <div className="p-6 flex-1 flex flex-col">
                     <h3 className="text-xl font-display font-bold text-brand-navy mb-2">{itemText.title}</h3>
                     <p className="text-sm text-brand-navy/60 line-clamp-2 mb-4 flex-1">
                       {itemText.desc}
                     </p>
-                    
+
                     <div className="flex items-center justify-between border-t border-brand-navy/10 pt-4 mb-4">
                       <div>
                         <span className="block text-xs text-brand-navy/50">{t.experiences.labels.from}</span>
@@ -115,7 +172,7 @@ export function Experiences() {
                       </div>
                     </div>
 
-                    <button 
+                    <button
                       onClick={() => setSelectedExp(exp)}
                       className="w-full py-3 rounded-xl border-2 border-brand-navy/10 text-brand-navy font-bold hover:bg-brand-navy hover:text-white transition-colors duration-300"
                     >
@@ -130,16 +187,17 @@ export function Experiences() {
 
       </div>
 
-      {/* Modal / Dialog */}
+      {/* Detail modal */}
       <Dialog open={!!selectedExp} onOpenChange={(open) => !open && setSelectedExp(null)}>
         <DialogContent className="sm:max-w-2xl p-0 overflow-hidden bg-white border-none rounded-2xl">
           {selectedExp && (() => {
-            const itemText = t.experiences.items[selectedExp.id as keyof typeof t.experiences.items];
+            const itemText = resolveText(selectedExp);
+            const imgUrl = resolveImage(selectedExp);
             return (
               <div className="flex flex-col max-h-[90vh]">
                 <div className="relative h-64 shrink-0 bg-gradient-to-br from-brand-ocean to-brand-navy">
                   <img
-                    src={selectedExp.imageUrl}
+                    src={imgUrl}
                     alt={itemText.title}
                     className="w-full h-full object-cover"
                     onError={(e) => { e.currentTarget.style.display = 'none'; }}
@@ -155,7 +213,7 @@ export function Experiences() {
                     <DialogTitle className="text-3xl font-display text-white">{itemText.title}</DialogTitle>
                   </div>
                 </div>
-                
+
                 <div className="p-6 overflow-y-auto">
                   <div className="flex justify-between items-center mb-6 bg-brand-light p-4 rounded-xl">
                     <div>
@@ -170,9 +228,7 @@ export function Experiences() {
                     </div>
                   </div>
 
-                  <p className="text-brand-navy/80 leading-relaxed mb-6">
-                    {itemText.desc}
-                  </p>
+                  <p className="text-brand-navy/80 leading-relaxed mb-6">{itemText.desc}</p>
 
                   <h4 className="font-bold text-brand-navy mb-3">{t.experiences.labels.includes}</h4>
                   <ul className="space-y-2 mb-6">
@@ -191,10 +247,21 @@ export function Experiences() {
                   />
                 </div>
               </div>
-            )
+            );
           })()}
         </DialogContent>
       </Dialog>
+
+      {/* Admin editor modal */}
+      {isAdmin && editingExp && (
+        <ExperienceEditorModal
+          exp={editingExp}
+          override={overrides[editingExp.id] ?? {}}
+          open={!!editingExp}
+          onClose={() => setEditingExp(null)}
+          onSaved={() => setRefreshKey(k => k + 1)}
+        />
+      )}
     </section>
   );
 }

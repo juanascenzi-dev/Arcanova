@@ -1,0 +1,92 @@
+Quiero preparar la siguiente evolución de este proyecto AUSTRAL Cancún Premium.
+
+Objetivo general:
+convertir la landing actual en una web comercial editable y escalable, sin perder el diseño premium existente.
+
+Necesito que propongas e implementes una base técnica sólida para estas 2 mejoras futuras:
+
+1. Idioma por defecto en inglés + sistema multiidioma extensible
+2. Panel admin en `/admin` para editar contenido visualmente, empezando por la sección Experiences
+
+## Parte 1 — Idiomas
+
+Quiero cambiar el comportamiento actual del i18n para que:
+
+* la primera visita abra siempre en inglés
+* si el usuario ya eligió otro idioma antes, se respete esa preferencia guardada
+* el sistema quede preparado para soportar múltiples idiomas además de ES/EN, por ejemplo:
+
+  * en
+  * es
+  * it
+  * fr
+
+Requisitos:
+
+* definir claramente `defaultLanguage` y `fallbackLanguage`
+* no depender solo de detección automática del navegador
+* mantener compatibilidad con el toggle de idioma actual
+* permitir agregar nuevos idiomas de forma limpia en el futuro
+* si falta una traducción en un idioma, usar fallback a inglés
+* no romper el diseño actual
+
+## Parte 2 — Admin `/admin`
+
+Quiero una arquitectura para que Rodri entre a:
+
+* `/` → vista pública normal
+* `/admin` → misma web, pero con herramientas de edición visibles
+
+Requisitos funcionales:
+
+* el admin debe ver prácticamente la misma interfaz que ve el cliente
+* en la sección Experiences, cada card o bloque editable debe poder mostrar un botón tipo lápiz o editar
+* al editar una experiencia, Rodri debe poder cambiar:
+
+  * título
+  * descripción
+  * etiqueta/categoría
+  * imagen
+  * orden
+  * estado visible/oculto
+* el flujo de edición puede abrir un modal, drawer o panel lateral
+* no quiero un CMS feo y separado: quiero experiencia visual parecida al sitio real
+
+Requisitos técnicos:
+
+* proponer una arquitectura escalable y mantenible
+* analizar si hoy conviene seguir usando datos hardcodeados o migrar a un modelo más editable
+* evaluar especialmente la estructura actual de `experiences.ts` + i18n
+* si los IDs actuales (`id1`, `id2`, etc.) son frágiles para admin, proponer refactor
+* dejar base lista para luego editar más secciones además de Experiences
+
+## Seguridad
+
+* `/admin` no puede quedar abierto sin protección
+* proponer una forma simple pero correcta de autenticación para esta etapa
+* no esconderlo solo por URL
+
+## Lo que quiero como entrega
+
+1. Diagnóstico técnico:
+
+   * qué cambiarías del i18n actual
+   * qué cambiarías del modelo de datos de experiencias
+   * cómo diseñarías `/admin`
+2. Propuesta de arquitectura concreta
+3. Plan de implementación por fases
+4. Riesgos y decisiones técnicas
+5. Si es viable, implementar una primera base real:
+
+   * i18n con default `en` + estructura extensible
+   * ruta `/admin`
+   * esqueleto de edición para Experiences
+6. Listado de archivos creados/modificados
+7. Qué dejarías pendiente para la siguiente iteración
+
+Importante:
+
+* no rehagas todo el proyecto
+* no cambies la estética general
+* priorizá una base técnica buena antes que hacks rápidos
+* pensá esto como el primer paso de un mini CMS visual

@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
-type Language = 'es' | 'en';
+export const SUPPORTED_LANGUAGES = ['en', 'es'] as const;
+export type Language = typeof SUPPORTED_LANGUAGES[number];
+export const DEFAULT_LANGUAGE: Language = 'en';
+export const FALLBACK_LANGUAGE: Language = 'en';
 
 type Translations = {
   [key in Language]: {
@@ -66,12 +69,12 @@ type Translations = {
         planB: string;
       };
       items: {
-        id1: { title: string; desc: string; includes: string[] };
-        id2: { title: string; desc: string; includes: string[] };
-        id3: { title: string; desc: string; includes: string[] };
-        id4: { title: string; desc: string; includes: string[] };
-        id5: { title: string; desc: string; includes: string[] };
-        id6: { title: string; desc: string; includes: string[] };
+        yacht: { title: string; desc: string; includes: string[] };
+        atv: { title: string; desc: string; includes: string[] };
+        bungee: { title: string; desc: string; includes: string[] };
+        chichenitza: { title: string; desc: string; includes: string[] };
+        transfers: { title: string; desc: string; includes: string[] };
+        rainday: { title: string; desc: string; includes: string[] };
       };
     };
     rainPlan: {
@@ -191,32 +194,32 @@ const translations: Translations = {
         planB: "PLAN B"
       },
       items: {
-        id1: { 
+        yacht: { 
           title: "Yate Privado Premium", 
           desc: "Navegá las aguas turquesas del Caribe en un yate de lujo con chef a bordo y barra libre.",
           includes: ["Barra libre premium", "Chef a bordo", "Equipo de snorkel", "Toallas y amenidades"]
         },
-        id2: { 
+        atv: { 
           title: "Cuatriciclos en la Selva", 
           desc: "Adrenalina pura recorriendo senderos ocultos en la selva maya hasta llegar a un cenote privado.",
           includes: ["ATV de última generación", "Guía experto", "Nado en cenote", "Snacks y bebidas"]
         },
-        id3: { 
+        bungee: { 
           title: "Bungee Jumping Extremo", 
           desc: "Desafiá tus límites con un salto al vacío sobre el mar Caribe. Solo para valientes.",
           includes: ["Equipo de seguridad certificado", "Video HD del salto", "Certificado de valor"]
         },
-        id4: { 
+        chichenitza: { 
           title: "Chichén Itzá VIP", 
           desc: "Descubrí la maravilla del mundo con un guía privado experto, evitando las multitudes.",
           includes: ["Transporte privado", "Guía arqueológico", "Almuerzo gourmet", "Entradas VIP sin fila"]
         },
-        id5: { 
+        transfers: { 
           title: "Traslados VIP Aeropuerto", 
           desc: "Comenzá tu viaje con el pie derecho. Traslados en SUV de lujo con bebidas frías.",
           includes: ["Chofer bilingüe", "SUV blindada/lujo", "Bebidas de cortesía", "Monitoreo de vuelo"]
         },
-        id6: { 
+        rainday: { 
           title: "Día de Lluvia Premium", 
           desc: "Si el clima no acompaña, tenemos el plan perfecto: museos interactivos, shopping VIP y spa.",
           includes: ["Transporte privado", "Entradas a atracciones techadas", "Reserva en restaurantes exclusivos"]
@@ -337,32 +340,32 @@ const translations: Translations = {
         planB: "PLAN B"
       },
       items: {
-        id1: { 
+        yacht: { 
           title: "Premium Private Yacht", 
           desc: "Sail the turquoise waters of the Caribbean in a luxury yacht with a chef on board and open bar.",
           includes: ["Premium open bar", "On-board chef", "Snorkel gear", "Towels and amenities"]
         },
-        id2: { 
+        atv: { 
           title: "ATV Jungle Adventure", 
           desc: "Pure adrenaline riding through hidden trails in the Mayan jungle until reaching a private cenote.",
           includes: ["Latest generation ATVs", "Expert guide", "Cenote swim", "Snacks and drinks"]
         },
-        id3: { 
+        bungee: { 
           title: "Extreme Bungee Jumping", 
           desc: "Challenge your limits with a leap over the Caribbean sea. Only for the brave.",
           includes: ["Certified safety gear", "HD Video of the jump", "Certificate of courage"]
         },
-        id4: { 
+        chichenitza: { 
           title: "VIP Chichén Itzá", 
           desc: "Discover the wonder of the world with a private expert guide, avoiding the crowds.",
           includes: ["Private transport", "Archaeological guide", "Gourmet lunch", "VIP skip-the-line tickets"]
         },
-        id5: { 
+        transfers: { 
           title: "VIP Airport Transfers", 
           desc: "Start your trip on the right foot. Luxury SUV transfers with cold drinks ready for you.",
           includes: ["Bilingual driver", "Luxury/Armored SUV", "Complimentary drinks", "Flight monitoring"]
         },
-        id6: { 
+        rainday: { 
           title: "Premium Rainy Day Plan", 
           desc: "If the weather doesn't cooperate, we have the perfect plan: interactive museums, VIP shopping, and spa.",
           includes: ["Private transport", "Indoor attraction tickets", "Exclusive restaurant reservations"]
@@ -430,19 +433,19 @@ type I18nContextType = {
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
+export function getTranslation(lang: Language) {
+  return translations[lang] ?? translations[FALLBACK_LANGUAGE];
+}
+
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [lang, setLang] = useState<Language>('es');
+  const [lang, setLang] = useState<Language>(DEFAULT_LANGUAGE);
 
   useEffect(() => {
-    const saved = localStorage.getItem('rcp_lang') as Language;
-    if (saved && (saved === 'es' || saved === 'en')) {
-      setLang(saved);
-    } else {
-      const browserLang = navigator.language.toLowerCase();
-      if (!browserLang.startsWith('es')) {
-        setLang('en');
-      }
+    const saved = localStorage.getItem('rcp_lang');
+    if (saved && SUPPORTED_LANGUAGES.includes(saved as Language)) {
+      setLang(saved as Language);
     }
+    // If no saved preference, DEFAULT_LANGUAGE ('en') is used — no browser detection
   }, []);
 
   const handleSetLang = (newLang: Language) => {
