@@ -12,10 +12,10 @@ export interface Lead {
 const STORAGE_KEY = 'austral_leads';
 
 export const CONTACT_CONFIG = {
-  whatsappNumber: '529981234567',
-  email: 'info@australcancun.com',
-  facebookPage: 'https://www.facebook.com/australcancun',
-  facebookMessenger: 'https://m.me/australcancun',
+  whatsappNumber: '5491138475846',
+  email: 'info.ixchelexperience@yahoo.com',
+  facebookPage: 'https://www.facebook.com/share/1Ev9Xg7dQ9/?mibextid=wwXIfr',
+  facebookMessenger: 'https://m.me/rodrigo.fimiani',
 };
 
 export function saveLead(lead: Omit<Lead, 'id' | 'timestamp'>): Lead {
