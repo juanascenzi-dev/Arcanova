@@ -271,6 +271,20 @@ async function parseSuccessBody(
   }
 }
 
+// ─── API base URL (production) ───────────────────────────────────────────────
+// In dev, Vite proxies /api → localhost backend.
+// In production (Vercel SPA), set VITE_API_URL to the backend URL so relative
+// /api paths resolve correctly. Example: https://api.australcancun.up.railway.app
+function getApiBaseUrl(): string {
+  try {
+    // @ts-ignore — import.meta.env is replaced by Vite at build time
+    const url = (import.meta.env?.VITE_API_URL as string | undefined) ?? "";
+    return url.replace(/\/$/, "");
+  } catch {
+    return "";
+  }
+}
+
 // ─── Admin JWT injection ──────────────────────────────────────────────────────
 export const ADMIN_TOKEN_KEY = "austral_admin_jwt";
 
@@ -310,6 +324,12 @@ export async function customFetch<T = unknown>(
     throw new TypeError(`customFetch: ${method} requests cannot have a body.`);
   }
 
+  // In production, prefix relative /api paths with the backend base URL.
+  // In development, Vite's proxy handles /api → localhost:8080.
+  const apiBase = getApiBaseUrl();
+  const rawUrl = resolveUrl(input);
+  const resolvedInput = apiBase && rawUrl.startsWith("/") ? `${apiBase}${rawUrl}` : input;
+
   const headers = mergeHeaders(isRequest(input) ? input.headers : undefined, headersInit);
 
   // Inject JWT token if available and not already set
@@ -330,9 +350,9 @@ export async function customFetch<T = unknown>(
     headers.set("accept", DEFAULT_JSON_ACCEPT);
   }
 
-  const requestInfo = { method, url: resolveUrl(input) };
+  const requestInfo = { method, url: resolveUrl(resolvedInput) };
 
-  const response = await fetch(input, { ...init, method, headers });
+  const response = await fetch(resolvedInput, { ...init, method, headers });
 
   if (!response.ok) {
     const errorData = await parseErrorBody(response, method);

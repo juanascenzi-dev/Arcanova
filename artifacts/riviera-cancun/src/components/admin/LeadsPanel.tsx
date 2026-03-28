@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useListLeads, getListLeadsQueryKey, getAdminToken, type Lead } from '@workspace/api-client-react';
+import { apiUrl } from '@/lib/api';
 import { formatDistanceToNow } from 'date-fns';
 import { es, enUS } from 'date-fns/locale';
 import { MessageSquare, User, Calendar, X } from 'lucide-react';
@@ -163,7 +164,7 @@ function LeadDetailModal({ lead, onClose }: { lead: Lead; onClose: () => void })
 
     try {
       const token = getAdminToken();
-      const res = await fetch(`/api/leads/${lead.id}`, {
+      const res = await fetch(apiUrl(`/api/leads/${lead.id}`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

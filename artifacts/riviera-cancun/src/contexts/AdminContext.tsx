@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { setAdminToken, clearAdminToken, getAdminToken } from '@workspace/api-client-react';
-
-const API_BASE = import.meta.env.BASE_URL?.replace(/\/$/, '') || '';
+import { apiFetch } from '@/lib/api';
 
 interface AdminContextType {
   isAdmin: boolean;
@@ -23,7 +22,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
   async function login(password: string): Promise<boolean> {
     try {
-      const res = await fetch(`${API_BASE}/api/admin/login`, {
+      const res = await apiFetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pin: password }),

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { type Experience, getAdminToken } from '@workspace/api-client-react';
 import { useTranslation } from '@/contexts/i18n';
+import { apiUrl } from '@/lib/api';
 import { Save, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 interface Props {
@@ -76,7 +77,7 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
       if (JSON.stringify(category) !== JSON.stringify(exp.category)) body.category = category;
 
       const token = getAdminToken();
-      const res = await fetch(`/api/experiences/${exp.id}`, {
+      const res = await fetch(apiUrl(`/api/experiences/${exp.id}`), {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

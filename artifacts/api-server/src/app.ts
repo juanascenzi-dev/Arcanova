@@ -17,10 +17,18 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "")
   .map(o => o.trim())
   .filter(Boolean);
 
-// In development (no ALLOWED_ORIGINS set), allow everything
+const isProduction = process.env.NODE_ENV === "production";
+
+// In development (no ALLOWED_ORIGINS set), allow everything.
+// In production, require ALLOWED_ORIGINS to be set explicitly.
+if (isProduction && ALLOWED_ORIGINS.length === 0) {
+  console.warn("⚠️  WARNING: ALLOWED_ORIGINS is not set in production. CORS will block all browser requests.");
+}
+
 const corsOptions: cors.CorsOptions = {
   origin: ALLOWED_ORIGINS.length > 0
     ? (origin, callback) => {
+        // Allow server-to-server requests (no origin header)
         if (!origin || ALLOWED_ORIGINS.includes(origin)) {
           callback(null, true);
         } else {

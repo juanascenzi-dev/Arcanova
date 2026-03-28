@@ -1,0 +1,96 @@
+Quiero preparar este proyecto para deploy real a producción con dominio propio.
+
+Contexto:
+
+* Ya se hizo una auditoría de seguridad y performance
+* Ya se implementaron:
+
+  * auth backend con JWT
+  * rate limiting
+  * Helmet
+  * CORS con whitelist
+  * optimizaciones de hero
+  * índices en DB
+* Arquitectura elegida:
+
+  * frontend en Vercel
+  * backend Express en Railway o Render
+  * PostgreSQL en Neon
+* El código va a vivir en GitHub y desde ahí quiero CI/CD simple
+
+Objetivo:
+quiero un plan e implementación concreta para dejar el proyecto listo para producción real.
+
+## Necesito que revises y prepares:
+
+### 1. Variables de entorno
+
+Listá todas las variables necesarias para:
+
+* frontend
+* backend
+* base de datos
+
+Separá claramente:
+
+* desarrollo
+* producción
+
+Y decime cuáles son obligatorias.
+
+### 2. Configuración de producción
+
+Revisá y ajustá:
+
+* URLs de API
+* CORS
+* dominios permitidos
+* auth JWT
+* expiración de token
+* modo seguro según entorno
+* logs
+* healthcheck
+
+### 3. Deploy
+
+Quiero instrucciones concretas para:
+
+* subir repo a GitHub
+* conectar frontend a Vercel
+* conectar backend a Railway o Render
+* conectar Neon PostgreSQL
+* configurar variables de entorno en cada servicio
+
+### 4. Checklist de validación post-deploy
+
+Quiero una lista concreta para probar:
+
+* home pública
+* navbar
+* experiencias
+* contacto por WhatsApp/Email/Facebook
+* creación de leads
+* login admin
+* edición de experiences
+* panel de leads
+* errores de CORS
+* errores de auth
+
+### 5. Riesgos de producción
+
+Detectá cualquier cosa que todavía pueda romperse al pasar de Replit a producción.
+
+### 6. Entregables
+
+1. lista final de variables de entorno
+2. ajustes de código/config necesarios
+3. pasos de deploy por servicio
+4. checklist post-deploy
+5. riesgos pendientes
+6. recomendaciones de hardening futuro
+
+Importante:
+
+* no quiero teoría
+* quiero pasos concretos, listos para ejecutar
+* priorizar una salida a producción simple, segura y mantenible

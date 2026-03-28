@@ -4,27 +4,18 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
+// PORT is only required for the dev server, not for vite build.
+// BASE_PATH defaults to "/" — override in Replit dev env.
+const isBuild = process.argv.includes("build");
+
 const rawPort = process.env.PORT;
-
-if (!rawPort) {
-  throw new Error(
-    "PORT environment variable is required but was not provided.",
-  );
+if (!isBuild && !rawPort) {
+  throw new Error("PORT environment variable is required for dev server.");
 }
+const port = rawPort ? Number(rawPort) : 3000;
 
-const port = Number(rawPort);
-
-if (Number.isNaN(port) || port <= 0) {
-  throw new Error(`Invalid PORT value: "${rawPort}"`);
-}
-
-const basePath = process.env.BASE_PATH;
-
-if (!basePath) {
-  throw new Error(
-    "BASE_PATH environment variable is required but was not provided.",
-  );
-}
+// In production (Vercel), base is always "/"
+const basePath = process.env.BASE_PATH || "/";
 
 export default defineConfig({
   base: basePath,
@@ -57,12 +48,22 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        // Split vendor chunks for better caching
+        manualChunks: {
+          "react-vendor": ["react", "react-dom"],
+          "motion": ["framer-motion"],
+          "query": ["@tanstack/react-query"],
+        },
+      },
+    },
   },
   server: {
     port,
     host: "0.0.0.0",
     allowedHosts: true,
-    // Proxy /api requests to the API server in development
     proxy: {
       "/api": {
         target: `http://localhost:${process.env.API_PORT || "8080"}`,
