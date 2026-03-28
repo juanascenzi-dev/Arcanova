@@ -3,22 +3,29 @@ import { useTranslation } from '@/contexts/i18n';
 import { motion } from 'framer-motion';
 import { ShipWheelIcon } from '@/components/Logo';
 
+// Optimized: 1200px wide, q=75 saves ~40% bandwidth vs 1600px q=80
 const heroImages = [
-  "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=1600&q=80",
-  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600&q=80",
-  "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=1600&q=80",
-  "https://images.unsplash.com/photo-1547483238-2cbf881a559f?w=1600&q=80",
-  "https://images.unsplash.com/photo-1518638150340-f706e86654de?w=1600&q=80",
-  "https://images.unsplash.com/photo-1468413253725-0d5181091126?w=1600&q=80",
+  "https://images.unsplash.com/photo-1510414842594-a61c69b5ae57?w=1200&q=75",
+  "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&q=75",
+  "https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?w=1200&q=75",
+  "https://images.unsplash.com/photo-1547483238-2cbf881a559f?w=1200&q=75",
+  "https://images.unsplash.com/photo-1518638150340-f706e86654de?w=1200&q=75",
+  "https://images.unsplash.com/photo-1468413253725-0d5181091126?w=1200&q=75",
 ];
 
 export function Hero() {
   const { t } = useTranslation();
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [loadedSlides, setLoadedSlides] = useState<Set<number>>(new Set([0]));
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % heroImages.length);
+      setCurrentSlide((prev) => {
+        const next = (prev + 1) % heroImages.length;
+        // Pre-load the next slide before transition
+        setLoadedSlides(s => new Set([...s, next]));
+        return next;
+      });
     }, 10000);
     return () => clearInterval(interval);
   }, []);
@@ -30,18 +37,21 @@ export function Hero() {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-brand-navy pt-20">
 
-      {/* Carousel Background Images */}
-      {heroImages.map((img, i) => (
-        <div
-          key={img}
-          className="absolute inset-0 z-0 bg-center bg-cover"
-          style={{
-            backgroundImage: `url(${img})`,
-            opacity: currentSlide === i ? 1 : 0,
-            transition: 'opacity 1.5s ease-in-out',
-          }}
-        />
-      ))}
+      {/* Carousel Background Images — only render loaded slides */}
+      {heroImages.map((img, i) => {
+        if (!loadedSlides.has(i)) return null;
+        return (
+          <div
+            key={img}
+            className="absolute inset-0 z-0 bg-center bg-cover"
+            style={{
+              backgroundImage: `url(${img})`,
+              opacity: currentSlide === i ? 1 : 0,
+              transition: 'opacity 1.5s ease-in-out',
+            }}
+          />
+        );
+      })}
 
       {/* Dark overlay for readability */}
       <div className="absolute inset-0 z-[1]" style={{ background: 'rgba(10,22,40,0.60)' }} />

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useListLeads, getListLeadsQueryKey, type Lead } from '@workspace/api-client-react';
+import { useListLeads, getListLeadsQueryKey, getAdminToken, type Lead } from '@workspace/api-client-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es, enUS } from 'date-fns/locale';
 import { MessageSquare, User, Calendar, X } from 'lucide-react';
@@ -9,11 +9,7 @@ export function LeadsPanel() {
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
-  const { data: leads = [], isLoading } = useListLeads({
-    headers: {
-      'x-admin-token': (import.meta.env.VITE_ADMIN_PIN as string) || 'austral2025',
-    },
-  });
+  const { data: leads = [], isLoading } = useListLeads();
 
   const filtered = leads.filter(lead => {
     if (statusFilter && lead.status !== statusFilter) return false;
@@ -160,18 +156,18 @@ function LeadDetailModal({ lead, onClose }: { lead: Lead; onClose: () => void })
   const [newStatus, setNewStatus] = useState(lead.status);
   const [saving, setSaving] = useState(false);
   const queryClient = useQueryClient();
-  const pin = (import.meta.env.VITE_ADMIN_PIN as string) || 'austral2025';
 
   async function handleStatusChange() {
     if (newStatus === lead.status) return;
     setSaving(true);
 
     try {
+      const token = getAdminToken();
       const res = await fetch(`/api/leads/${lead.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-token': pin,
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({ status: newStatus }),
       });

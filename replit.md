@@ -25,7 +25,7 @@ artifacts-monorepo/
 │   └── riviera-cancun/     # AUSTRAL Cancún Premium website (React + Vite)
 ├── lib/                    # Shared libraries
 │   ├── api-spec/           # OpenAPI spec + Orval codegen config
-│   ├── api-client-react/   # Generated React Query hooks
+│   ├── api-client-react/   # Generated React Query hooks + customFetch with JWT injection
 │   ├── api-zod/            # Generated Zod schemas from OpenAPI
 │   └── db/                 # Drizzle ORM schema + DB connection
 ├── scripts/                # Utility scripts (single workspace package)
@@ -40,12 +40,11 @@ artifacts-monorepo/
 A luxury tourism landing page for AUSTRAL Cancún Premium — a premium tour operator in Cancún & Riviera Maya, Mexico. Argentine-owned (subtle nod in the footer).
 
 ### Features
-- **Fully bilingual (ES/EN)** — React Context i18n, default EN, localStorage preference persistence, extensible for IT/FR
-- **Hero carousel** — 6 Unsplash images rotating every 10s with 1.5s crossfade transition
+- **Fully bilingual (ES/EN)** — React Context i18n, default EN, localStorage preference persistence
+- **Hero carousel** — 6 Unsplash images (1200px, q=75) rotating every 10s with lazy loading (only loads current + next slide)
 - **Ship wheel (timón) SVG logo** — custom inline SVG, reusable `<Logo />` component with size/color props
-- **Slowly rotating ship wheel watermark** in the hero background (60s CSS animation, 8% opacity)
 - **6 experience cards** with real Unsplash images, category filter tabs, and detail modals
-- **Inquiry flow** — ContactChannelSelector in modals: WhatsApp, Email, Facebook. Leads saved to localStorage.
+- **Inquiry flow** — ContactChannelSelector in modals: WhatsApp, Email, Facebook. Leads saved to PostgreSQL.
 - **Image error fallback** — `onError` handler shows gradient + emoji if Unsplash fails
 - **Scroll-to-top button** — appears after 400px scroll, themed with wave/arrow SVG, gold color
 - **WhatsApp floating button** — always visible, links to wa.me/529981234567
@@ -55,44 +54,62 @@ A luxury tourism landing page for AUSTRAL Cancún Premium — a premium tour ope
 
 ### Admin Panel (`/admin`)
 - **Route**: `/admin` — shows login screen unless authenticated
-- **Authentication**: password via `VITE_ADMIN_PIN` env secret (default: `austral2025`); session in `sessionStorage`
-- **AdminTopBar**: gold banner at top while in admin mode, with logout button
+- **Authentication**: POST `/api/admin/login` with PIN → returns JWT (8h expiry). JWT stored in sessionStorage (never the PIN itself)
+- **JWT flow**: AdminContext fetches JWT → customFetch injects `Authorization: Bearer <token>` on all API calls automatically
 - **Experience editing**: pencil icon on card hover → modal to edit title (EN+ES), description (EN+ES), image URL, visible toggle
-- **Persistence**: admin edits PATCH `/api/experiences/:id` with `x-admin-token` header → persisted in PostgreSQL
-- **Server auth**: API validates `x-admin-token` against `ADMIN_PIN` env var (falls back to `VITE_ADMIN_PIN` then `austral2025`)
+- **Persistence**: admin edits PATCH `/api/experiences/:id` with JWT → persisted in PostgreSQL
+- **Server auth**: `requireAdmin` middleware verifies JWT signature (JWT_SECRET env var)
 - **Visibility control**: hidden experiences show grayed/ghosted only to admin; public visitors never see them
 
 ### Admin Key Files
-- `src/contexts/AdminContext.tsx` — auth state, login/logout, sessionStorage session
-- `src/lib/adminStorage.ts` — localStorage helpers for per-experience overrides
-- `src/components/admin/AdminLogin.tsx` — styled login screen
-- `src/components/admin/AdminTopBar.tsx` — gold admin indicator bar
+- `src/contexts/AdminContext.tsx` — auth state, async login (POST /api/admin/login), JWT management
+- `src/components/admin/AdminLogin.tsx` — styled login screen (async, shows loading state)
 - `src/components/admin/ExperienceEditorModal.tsx` — edit modal (title EN/ES, desc EN/ES, image, visible)
-- `src/pages/Admin.tsx` — route handler (shows AdminLogin or Home with admin overlays)
+- `src/components/admin/LeadsPanel.tsx` — leads table with filter and status modal
+- `src/pages/Admin.tsx` — route handler (shows AdminLogin or AdminDashboard)
+- `artifacts/api-server/src/middlewares/auth.ts` — JWT sign/verify, requireAdmin middleware
+- `artifacts/api-server/src/routes/auth.ts` — POST /api/admin/login endpoint
+
+### Security Architecture (Post-Audit)
+- **JWT auth**: HS256 tokens signed with JWT_SECRET (8h TTL). PIN never leaves the server.
+- **Rate limiting**: 200 req/15min general · 10 req/15min on login · 30 req/15min on lead creation
+- **Security headers**: Helmet.js (CSP, X-Frame-Options, X-Content-Type-Options, etc.)
+- **CORS**: Restricted to ALLOWED_ORIGINS env var in production (open in development)
+- **Body size limit**: 50kb max to prevent payload attacks
+- **DB indexes**: leads table has indexes on status, channel, created_at, experience_id
+- **Drizzle ORM**: parameterized queries, no raw SQL, no injection risk
+
+### Required env vars for production
+- `ADMIN_PIN` — admin panel password (never use default in prod)
+- `JWT_SECRET` — secret for signing JWTs (use a long random string)
+- `ALLOWED_ORIGINS` — comma-separated list of allowed frontend origins (e.g. `https://australcancun.com`)
+- `DATABASE_URL` — PostgreSQL connection string
+- `PORT` — server port
 
 ### i18n Architecture
 - `src/contexts/i18n.tsx` exports: `SUPPORTED_LANGUAGES`, `DEFAULT_LANGUAGE` ('en'), `FALLBACK_LANGUAGE` ('en'), `getTranslation(lang)`
 - Adding a new language: add to `SUPPORTED_LANGUAGES` array + add full translation object in `translations`
-- Experience item keys: `yacht`, `atv`, `bungee`, `chichenitza`, `transfers`, `rainday` (semantic, no longer fragile `id1..id6`)
 - No browser auto-detection: defaults to EN, respects saved user preference
 
 ### Key Files
 - `src/contexts/i18n.tsx` — Complete ES/EN translation system with React Context
 - `src/data/experiences.ts` — Static seed types (price, categories, emojis — supplemented by API data)
-- `src/lib/leads.ts` — Lead capture (localStorage) + CONTACT_CONFIG for WhatsApp/email/Facebook
+- `src/lib/leads.ts` — URL builders for WhatsApp/email/Facebook + CONTACT_CONFIG
 - `src/components/Logo.tsx` — Reusable ship wheel SVG component
-- `src/components/Hero.tsx` — Carousel hero with watermark
-- `src/components/Experiences.tsx` — Fetches from API via `useListExperiences()`, filterable grid with modal + admin overlay
-- `src/components/admin/ExperienceEditorModal.tsx` — PATCHes `/api/experiences/:id` with admin token
+- `src/components/Hero.tsx` — Carousel hero with watermark (lazy-loads slides)
+- `src/components/Experiences.tsx` — Fetches from API via useListExperiences(), filterable grid with modal + admin overlay
+- `src/components/admin/ExperienceEditorModal.tsx` — PATCHes /api/experiences/:id with JWT
 - `src/components/WhatsAppButton.tsx` — Floating WhatsApp CTA
 - `src/components/ScrollToTopButton.tsx` — Scroll-to-top with wave icon
 
 ### Data Architecture (Backend)
-- **Schema**: `lib/db/src/schema/experiences.ts` — Drizzle `experiences` table with JSONB columns for `title`, `desc`, `includes` (multi-language, no migration needed to add new languages)
-- **API**: `GET /api/experiences` (public, ordered by `sort_order`) and `PATCH /api/experiences/:id` (admin auth via `x-admin-token` header)
+- **Schema**: `lib/db/src/schema/experiences.ts` — Drizzle `experiences` table with JSONB columns for `title`, `desc`, `includes` (multi-language)
+- **Leads schema**: `lib/db/src/schema/leads.ts` — UUID PK, channel enum, status enum, lang enum; with 4 DB indexes
+- **API**: GET /api/experiences (public), PATCH /api/experiences/:id (JWT required), POST /api/leads (public), GET/PATCH /api/leads (JWT required)
 - **Seed**: `artifacts/api-server/src/seed.ts` — 6 experiences with EN+ES translations; run with `npx tsx artifacts/api-server/src/seed.ts`
+- **DB Migration note**: `drizzle-kit push` hangs on interactive prompt; use `psql $DATABASE_URL` for DDL changes directly
 - **Vite proxy**: `/api` → `http://localhost:8080` in development via `server.proxy` in `vite.config.ts`
-- **Codegen**: `pnpm --filter @workspace/api-spec run codegen` → regenerates React Query hooks in `lib/api-client-react/src/generated/api.ts`
+- **Codegen**: `pnpm --filter @workspace/api-spec run codegen` → regenerates React Query hooks
 
 ### Color Palette
 | Name       | Hex       | Usage                                  |
@@ -112,7 +129,7 @@ A luxury tourism landing page for AUSTRAL Cancún Premium — a premium tour ope
 
 ### `artifacts/api-server` (`@workspace/api-server`)
 
-Express 5 API server. Routes live in `src/routes/`.
+Express 5 API server. Routes live in `src/routes/`. Security: Helmet + CORS + rate limiting via express-rate-limit.
 
 ### `lib/db` (`@workspace/db`)
 
@@ -128,4 +145,4 @@ Generated Zod schemas from the OpenAPI spec.
 
 ### `lib/api-client-react` (`@workspace/api-client-react`)
 
-Generated React Query hooks and fetch client.
+Generated React Query hooks and fetch client. `custom-fetch.ts` automatically injects the admin JWT from sessionStorage into all requests.

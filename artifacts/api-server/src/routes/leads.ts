@@ -1,22 +1,11 @@
-import { Router, type IRouter, type Request, type Response } from "express";
+import { Router, type IRouter } from "express";
 import { db } from "@workspace/db";
 import { leadsTable, insertLeadSchema, updateLeadSchema } from "@workspace/db/schema";
 import { desc, eq, and } from "drizzle-orm";
+import { requireAdmin } from "../middlewares/auth";
 
 const router: IRouter = Router();
 
-const ADMIN_PIN = process.env.ADMIN_PIN || process.env.VITE_ADMIN_PIN || "austral2025";
-
-function requireAdminToken(req: Request, res: Response): boolean {
-  const token = req.headers["x-admin-token"];
-  if (!token || token !== ADMIN_PIN) {
-    res.status(401).json({ error: "Unauthorized" });
-    return false;
-  }
-  return true;
-}
-
-// POST /api/leads — public, capture lead
 router.post("/leads", async (req, res) => {
   const parsed = insertLeadSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -41,37 +30,22 @@ router.post("/leads", async (req, res) => {
   }
 });
 
-// GET /api/leads — admin only, list leads with filters
-router.get("/leads", async (req, res) => {
-  if (!requireAdminToken(req, res)) return;
-
+router.get("/leads", requireAdmin, async (req, res) => {
   try {
     const { status, channel, experienceId, lang } = req.query;
+    const conditions: ReturnType<typeof eq>[] = [];
 
-    // Build conditions array
-    const conditions: any[] = [];
-    
-    if (status && typeof status === 'string') {
-      conditions.push(eq(leadsTable.status, status));
-    }
-    if (channel && typeof channel === 'string') {
-      conditions.push(eq(leadsTable.channel, channel));
-    }
-    if (experienceId && typeof experienceId === 'string') {
-      conditions.push(eq(leadsTable.experienceId, experienceId));
-    }
-    if (lang && typeof lang === 'string') {
-      conditions.push(eq(leadsTable.lang, lang));
-    }
+    if (status && typeof status === 'string') conditions.push(eq(leadsTable.status, status));
+    if (channel && typeof channel === 'string') conditions.push(eq(leadsTable.channel, channel));
+    if (experienceId && typeof experienceId === 'string') conditions.push(eq(leadsTable.experienceId, experienceId));
+    if (lang && typeof lang === 'string') conditions.push(eq(leadsTable.lang, lang));
 
-    // Execute query with conditions
-    let query = db.select().from(leadsTable).orderBy(desc(leadsTable.createdAt));
+    const leads = await db
+      .select()
+      .from(leadsTable)
+      .where(conditions.length > 0 ? and(...conditions) : undefined)
+      .orderBy(desc(leadsTable.createdAt));
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
-
-    const leads = await query;
     res.json(leads);
   } catch (err) {
     console.error("GET /leads error:", err);
@@ -79,10 +53,7 @@ router.get("/leads", async (req, res) => {
   }
 });
 
-// GET /api/leads/:id — admin only, get single lead
-router.get("/leads/:id", async (req, res) => {
-  if (!requireAdminToken(req, res)) return;
-
+router.get("/leads/:id", requireAdmin, async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -103,10 +74,7 @@ router.get("/leads/:id", async (req, res) => {
   }
 });
 
-// PATCH /api/leads/:id — admin only, update lead status or fields
-router.patch("/leads/:id", async (req, res) => {
-  if (!requireAdminToken(req, res)) return;
-
+router.patch("/leads/:id", requireAdmin, async (req, res) => {
   const { id } = req.params;
   const parsed = updateLeadSchema.safeParse(req.body);
 
@@ -122,10 +90,7 @@ router.patch("/leads/:id", async (req, res) => {
   try {
     const [lead] = await db
       .update(leadsTable)
-      .set({
-        ...parsed.data,
-        updatedAt: new Date(),
-      })
+      .set({ ...parsed.data, updatedAt: new Date() })
       .where(eq(leadsTable.id, id))
       .returning();
 

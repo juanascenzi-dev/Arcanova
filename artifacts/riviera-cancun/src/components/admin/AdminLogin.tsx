@@ -8,13 +8,18 @@ export function AdminLogin() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
   const [shake, setShake] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [, navigate] = useLocation();
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (login(password)) {
-      setError(false);
-    } else {
+    setLoading(true);
+    setError(false);
+
+    const ok = await login(password);
+    setLoading(false);
+
+    if (!ok) {
       setError(true);
       setShake(true);
       setPassword('');
@@ -53,7 +58,8 @@ export function AdminLogin() {
               placeholder="••••••••"
               autoComplete="current-password"
               autoFocus
-              className="w-full bg-black/20 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-brand-gold transition-colors"
+              disabled={loading}
+              className="w-full bg-black/20 border border-white/20 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:border-brand-gold transition-colors disabled:opacity-50"
             />
             {error && (
               <p className="text-brand-coral text-xs mt-2">Contraseña incorrecta.</p>
@@ -62,9 +68,10 @@ export function AdminLogin() {
 
           <button
             type="submit"
-            className="w-full py-3 bg-brand-gold text-brand-navy font-bold rounded-xl hover:bg-white transition-colors duration-300"
+            disabled={loading}
+            className="w-full py-3 bg-brand-gold text-brand-navy font-bold rounded-xl hover:bg-white transition-colors duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            Ingresar
+            {loading ? 'Verificando…' : 'Ingresar'}
           </button>
         </form>
 

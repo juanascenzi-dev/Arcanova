@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { type Experience } from '@workspace/api-client-react';
+import { type Experience, getAdminToken } from '@workspace/api-client-react';
 import { useTranslation } from '@/contexts/i18n';
 import { Save, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 
@@ -58,22 +58,11 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
     setSuccess(false);
 
     try {
-      const pin = (import.meta.env.VITE_ADMIN_PIN as string | undefined) ?? 'austral2025';
-
-      // Preserve existing translations in other languages, only update en/es
       const body: Record<string, unknown> = {
-        title: { 
-          ...exp.title,  // Keep any existing translations
-          en: titleEn, 
-          es: titleEs 
-        },
-        desc: { 
-          ...exp.desc,   // Keep any existing translations
-          en: descEn, 
-          es: descEs 
-        },
+        title: { ...exp.title, en: titleEn, es: titleEs },
+        desc: { ...exp.desc, en: descEn, es: descEs },
         includes: {
-          ...exp.includes,  // Keep any existing translations
+          ...exp.includes,
           en: includesEn.split('\n').map(s => s.trim()).filter(Boolean),
           es: includesEs.split('\n').map(s => s.trim()).filter(Boolean),
         },
@@ -81,17 +70,17 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
         sortOrder,
       };
 
-      // Only include fields that changed
       if (imageUrl !== exp.imageUrl) body.imageUrl = imageUrl;
       if (tagType !== exp.tagType) body.tagType = tagType;
       if (slug !== exp.slug) body.slug = slug;
       if (JSON.stringify(category) !== JSON.stringify(exp.category)) body.category = category;
 
+      const token = getAdminToken();
       const res = await fetch(`/api/experiences/${exp.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-token': pin,
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         },
         body: JSON.stringify(body),
       });

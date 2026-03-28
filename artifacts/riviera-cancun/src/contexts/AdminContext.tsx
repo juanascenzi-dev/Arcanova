@@ -1,13 +1,11 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { setAdminToken, clearAdminToken, getAdminToken } from '@workspace/api-client-react';
 
-// Set VITE_ADMIN_PIN in Replit Secrets to override the default password.
-// This is client-side protection — suitable for internal/low-risk admin use.
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PIN || 'austral2025';
-const SESSION_KEY = 'austral_admin_session';
+const API_BASE = import.meta.env.BASE_URL?.replace(/\/$/, '') || '';
 
 interface AdminContextType {
   isAdmin: boolean;
-  login: (password: string) => boolean;
+  login: (password: string) => Promise<boolean>;
   logout: () => void;
 }
 
@@ -17,23 +15,33 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    const session = sessionStorage.getItem(SESSION_KEY);
-    if (session === 'authenticated') {
+    const token = getAdminToken();
+    if (token) {
       setIsAdmin(true);
     }
   }, []);
 
-  function login(password: string): boolean {
-    if (password === ADMIN_PASSWORD) {
-      sessionStorage.setItem(SESSION_KEY, 'authenticated');
+  async function login(password: string): Promise<boolean> {
+    try {
+      const res = await fetch(`${API_BASE}/api/admin/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin: password }),
+      });
+
+      if (!res.ok) return false;
+
+      const { token } = await res.json() as { token: string };
+      setAdminToken(token);
       setIsAdmin(true);
       return true;
+    } catch {
+      return false;
     }
-    return false;
   }
 
   function logout() {
-    sessionStorage.removeItem(SESSION_KEY);
+    clearAdminToken();
     setIsAdmin(false);
   }
 
