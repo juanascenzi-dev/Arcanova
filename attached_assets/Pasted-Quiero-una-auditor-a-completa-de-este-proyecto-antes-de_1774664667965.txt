@@ -1,0 +1,182 @@
+Quiero una auditoría completa de este proyecto antes de llevarlo a producción.
+
+Contexto:
+
+* Proyecto: AUSTRAL Cancún Premium
+* Frontend: React + Vite + Tailwind + Framer Motion
+* Backend: Express API
+* Base de datos: PostgreSQL
+* Admin panel en `/admin`
+* CMS de Experiences funcionando
+* Sistema de leads funcionando
+* Deploy planificado:
+
+  * código en GitHub
+  * frontend en Vercel
+  * backend en servidor separado (o evaluar Vercel serverless)
+* Tráfico esperado: bajo a medio (50–200 usuarios concurrentes máximo)
+
+Objetivo:
+Quiero un análisis técnico serio enfocado en:
+
+* seguridad
+* performance
+* arquitectura
+* preparación para producción
+
+---
+
+## 1. Auditoría de seguridad
+
+Analizá TODO lo relacionado a seguridad:
+
+### Auth / Admin
+
+* uso actual de ADMIN_PIN / x-admin-token
+* riesgos de brute force
+* exposición en frontend
+* falta de sesiones reales
+
+### API
+
+* endpoints públicos (especialmente leads)
+* endpoints protegidos (PATCH experiences, leads status)
+* validación backend (ya con Zod)
+* posibles bypass
+
+### Base de datos
+
+* inyecciones
+* validación
+* exposición de datos
+
+### Frontend
+
+* exposición de tokens
+* posibles ataques XSS
+* inputs no sanitizados
+
+### Infraestructura
+
+* uso de HTTPS
+* headers de seguridad recomendados
+* CORS
+
+---
+
+## 2. Recomendaciones de seguridad (acción concreta)
+
+Quiero soluciones claras, no teoría:
+
+* cómo reemplazar el PIN por auth real
+* si conviene:
+
+  * JWT
+  * sesiones con cookies
+  * auth simple pero segura para admin
+* rate limiting (cómo implementarlo)
+* protección contra spam en leads
+* configuración segura para producción
+
+---
+
+## 3. Auditoría de performance
+
+Analizá:
+
+### Frontend
+
+* renders innecesarios
+* uso de React Query
+* carga del Hero (imágenes grandes)
+* modal admin (lento)
+* posibles memory leaks
+* bundle size
+
+### Backend
+
+* queries a DB
+* endpoints sin optimizar
+* falta de caching
+
+### Base de datos
+
+* índices necesarios
+* queries pesadas
+
+---
+
+## 4. Recomendaciones de optimización
+
+Quiero mejoras concretas:
+
+* lazy loading
+* memoization
+* optimización de imágenes
+* mejorar velocidad del admin
+* mejorar tiempo de carga inicial
+* caching donde tenga sentido
+
+---
+
+## 5. Arquitectura de deploy
+
+Quiero una recomendación clara para producción:
+
+Evaluar:
+
+* Vercel solo frontend + backend separado (Railway / Render / Fly.io)
+* o full serverless
+
+Decir:
+
+* qué conviene en este caso
+* por qué
+* pros y contras
+
+También incluir:
+
+* manejo de variables de entorno
+* conexión con GitHub
+* CI/CD básico
+
+---
+
+## 6. Escalabilidad
+
+Para 50–200 usuarios concurrentes:
+
+* si la arquitectura actual aguanta
+* cuellos de botella posibles
+* qué optimizar antes de escalar
+
+---
+
+## 7. Checklist de producción
+
+Quiero un checklist final tipo:
+
+* [ ] auth segura
+* [ ] rate limiting
+* [ ] variables de entorno seguras
+* [ ] HTTPS
+* [ ] headers de seguridad
+* [ ] logs
+* [ ] backups DB
+* [ ] etc.
+
+---
+
+## Entregable
+
+1. diagnóstico técnico claro
+2. riesgos ordenados por criticidad (🔴 🟡 🟢)
+3. recomendaciones accionables
+4. arquitectura recomendada para producción
+5. checklist final listo para ejecutar
+
+Importante:
+
+* no quiero teoría
+* quiero cosas concretas que pueda implementar
+* priorizar simplicidad y seguridad real
