@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { type Experience } from '@workspace/api-client-react';
-import { Save, X, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { useTranslation } from '@/contexts/i18n';
+import { Save, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 interface Props {
   exp: Experience;
@@ -14,6 +15,8 @@ const VALID_CATEGORIES = ['adventure', 'relax', 'cultural'] as const;
 const VALID_TAG_TYPES = ['bestSeller', 'adventure', 'extreme', 'cultural', 'comfort', 'planB'] as const;
 
 export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
+  const { t } = useTranslation();
+  
   // Text fields
   const [titleEn, setTitleEn] = useState(exp.title['en'] ?? '');
   const [titleEs, setTitleEs] = useState(exp.title['es'] ?? '');
@@ -36,6 +39,7 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
   const [imgPreviewError, setImgPreviewError] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorDetails, setErrorDetails] = useState<Array<{path: string; message: string}> | null>(null);
   const [success, setSuccess] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -50,6 +54,7 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
   async function handleSave() {
     setSaving(true);
     setError(null);
+    setErrorDetails(null);
     setSuccess(false);
 
     try {
@@ -84,8 +89,14 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({})) as any;
-        const msg = errData.error ?? `Error del servidor (${res.status})`;
-        throw new Error(msg);
+        if (errData.details && Array.isArray(errData.details)) {
+          setErrorDetails(errData.details);
+          setError(errData.error ?? t.admin.validationFailed);
+        } else {
+          const msg = errData.error ?? `Server error (${res.status})`;
+          setError(msg);
+        }
+        return;
       }
 
       setSuccess(true);
@@ -94,7 +105,7 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
         onClose();
       }, 500);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error desconocido al guardar');
+      setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setSaving(false);
     }
@@ -110,7 +121,7 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
         <div className="flex items-center justify-between px-6 py-4 border-b border-brand-navy/10 shrink-0">
           <div>
             <DialogTitle className="text-lg font-display font-bold text-brand-navy">
-              Editar experiencia
+              {t.admin.editExperience}
             </DialogTitle>
             <p className="text-xs text-brand-navy/40 mt-0.5">
               ID: <code className="bg-brand-navy/10 px-1 rounded font-mono">{exp.id}</code>
@@ -130,17 +141,28 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
 
           {/* Error message */}
           {error && (
-            <div className="flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-              <span>{error}</span>
+            <div className="flex flex-col gap-2">
+              <div className="flex items-start gap-2 text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{error}</span>
+              </div>
+              {errorDetails && errorDetails.length > 0 && (
+                <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 space-y-1">
+                  {errorDetails.map((detail, i) => (
+                    <div key={i} className="text-xs text-red-600">
+                      <span className="font-semibold">{detail.path}:</span> {detail.message}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
           {/* Visible toggle */}
           <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-brand-navy/10">
             <div>
-              <p className="text-sm font-bold text-brand-navy">Visible en el sitio</p>
-              <p className="text-xs text-brand-navy/50 mt-0.5">Si está desactivado, no aparece para visitantes</p>
+              <p className="text-sm font-bold text-brand-navy">{t.admin.visibleOnSite}</p>
+              <p className="text-xs text-brand-navy/50 mt-0.5">{t.admin.visibleOnSiteDesc}</p>
             </div>
             <button
               onClick={() => setVisible(!visible)}
@@ -156,7 +178,7 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
             {/* Titles */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className={labelClass}>Título en inglés</label>
+                <label className={labelClass}>{t.admin.titleEn}</label>
                 <input
                   value={titleEn}
                   onChange={(e) => setTitleEn(e.target.value)}
@@ -165,7 +187,7 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
                 />
               </div>
               <div>
-                <label className={labelClass}>Título en español</label>
+                <label className={labelClass}>{t.admin.titleEs}</label>
                 <input
                   value={titleEs}
                   onChange={(e) => setTitleEs(e.target.value)}
@@ -178,7 +200,7 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
             {/* Descriptions */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className={labelClass}>Descripción en inglés</label>
+                <label className={labelClass}>{t.admin.descEn}</label>
                 <textarea
                   value={descEn}
                   onChange={(e) => setDescEn(e.target.value)}
@@ -188,7 +210,7 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
                 />
               </div>
               <div>
-                <label className={labelClass}>Descripción en español</label>
+                <label className={labelClass}>{t.admin.descEs}</label>
                 <textarea
                   value={descEs}
                   onChange={(e) => setDescEs(e.target.value)}
@@ -202,7 +224,7 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
             {/* Includes */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className={labelClass}>Incluye (EN - una línea por item)</label>
+                <label className={labelClass}>{t.admin.includesEn}</label>
                 <textarea
                   value={includesEn}
                   onChange={(e) => setIncludesEn(e.target.value)}
@@ -213,7 +235,7 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
                 />
               </div>
               <div>
-                <label className={labelClass}>Incluye (ES - una línea por item)</label>
+                <label className={labelClass}>{t.admin.includesEs}</label>
                 <textarea
                   value={includesEs}
                   onChange={(e) => setIncludesEs(e.target.value)}
@@ -227,7 +249,7 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
 
             {/* Image URL */}
             <div>
-              <label className={labelClass}>URL de imagen</label>
+              <label className={labelClass}>{t.admin.imageUrl}</label>
               <input
                 type="url"
                 value={imageUrl}
@@ -241,7 +263,7 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
                   {!imgPreviewError ? (
                     <img src={imageUrl} alt="preview" className="w-full h-full object-cover" onError={() => setImgPreviewError(true)} />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white/40 text-xs">Imagen no disponible</div>
+                    <div className="w-full h-full flex items-center justify-center text-white/40 text-xs">{t.admin.imageUnavailable}</div>
                   )}
                 </div>
               )}
@@ -255,14 +277,14 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
               disabled={saving}
               className="text-xs font-bold uppercase tracking-wider text-brand-navy/60 hover:text-brand-navy transition-colors disabled:opacity-50"
             >
-              {showAdvanced ? '▼' : '▶'} Campos avanzados
+              {showAdvanced ? '▼' : '▶'} {t.admin.advancedFields}
             </button>
 
             {showAdvanced && (
               <div className="mt-4 space-y-4">
                 {/* Sort Order */}
                 <div>
-                  <label className={labelClass}>Orden de visualización (0-999)</label>
+                  <label className={labelClass}>{t.admin.sortOrder}</label>
                   <input
                     type="number"
                     min={0}
@@ -272,12 +294,12 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
                     disabled={saving}
                     className={`${fieldClass} disabled:opacity-60`}
                   />
-                  <p className="text-xs text-brand-navy/40 mt-1">Menor = aparece primero</p>
+                  <p className="text-xs text-brand-navy/40 mt-1">{t.admin.sortOrderHint}</p>
                 </div>
 
                 {/* Tag Type */}
                 <div>
-                  <label className={labelClass}>Tipo de etiqueta</label>
+                  <label className={labelClass}>{t.admin.tagType}</label>
                   <select
                     value={tagType}
                     onChange={(e) => setTagType(e.target.value)}
@@ -292,7 +314,7 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
 
                 {/* Categories */}
                 <div>
-                  <label className={labelClass}>Categorías</label>
+                  <label className={labelClass}>{t.admin.categories}</label>
                   <div className="flex gap-2">
                     {VALID_CATEGORIES.map(cat => (
                       <button
@@ -313,7 +335,7 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
 
                 {/* Slug */}
                 <div>
-                  <label className={labelClass}>Slug (URL-friendly)</label>
+                  <label className={labelClass}>{t.admin.slug}</label>
                   <input
                     type="text"
                     value={slug}
@@ -322,7 +344,7 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
                     className={`${fieldClass} disabled:opacity-60 font-mono text-xs`}
                     placeholder="premium-private-yacht"
                   />
-                  <p className="text-xs text-brand-navy/40 mt-1">Solo letras minúsculas, números y guiones</p>
+                  <p className="text-xs text-brand-navy/40 mt-1">{t.admin.slugHint}</p>
                 </div>
               </div>
             )}
@@ -336,7 +358,7 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
             disabled={saving}
             className="px-5 py-2.5 text-sm font-semibold text-brand-navy border border-brand-navy/15 rounded-xl hover:border-brand-navy/30 transition-colors disabled:opacity-50"
           >
-            Cancelar
+            {t.admin.cancel}
           </button>
           <button
             onClick={handleSave}
@@ -344,9 +366,9 @@ export function ExperienceEditorModal({ exp, open, onClose, onSaved }: Props) {
             className="flex items-center gap-2 px-5 py-2.5 text-sm font-bold bg-brand-gold text-brand-navy rounded-xl hover:bg-brand-navy hover:text-white transition-colors disabled:opacity-60"
           >
             {saving ? (
-              <><Loader2 className="w-4 h-4 animate-spin" /> Guardando...</>
+              <><Loader2 className="w-4 h-4 animate-spin" /> {t.admin.saving}</>
             ) : (
-              <><Save className="w-4 h-4" /> Guardar</>
+              <><Save className="w-4 h-4" /> {t.admin.save}</>
             )}
           </button>
         </div>

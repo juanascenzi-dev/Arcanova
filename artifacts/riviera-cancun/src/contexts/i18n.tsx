@@ -275,6 +275,31 @@ const translations: Translations = {
       back: "Volver",
       copied: "¡Copiado al portapapeles!",
       note: "No realizamos cobros por la web. El cierre de la reserva se coordina directamente con vos."
+    },
+    admin: {
+      editExperience: "Editar experiencia",
+      visibleOnSite: "Visible en el sitio",
+      visibleOnSiteDesc: "Si está desactivado, no aparece para visitantes",
+      titleEn: "Título en inglés",
+      titleEs: "Título en español",
+      descEn: "Descripción en inglés",
+      descEs: "Descripción en español",
+      includesEn: "Incluye (EN - una línea por item)",
+      includesEs: "Incluye (ES - una línea por item)",
+      imageUrl: "URL de imagen",
+      imageUnavailable: "Imagen no disponible",
+      advancedFields: "Campos avanzados",
+      sortOrder: "Orden de visualización (0-999)",
+      sortOrderHint: "Menor = aparece primero",
+      tagType: "Tipo de etiqueta",
+      categories: "Categorías",
+      slug: "Slug (URL-friendly)",
+      slugHint: "Solo letras minúsculas, números y guiones",
+      cancel: "Cancelar",
+      save: "Guardar",
+      saving: "Guardando...",
+      validationFailed: "Error de validación",
+      success: "Guardado exitosamente"
     }
   },
   en: {
@@ -421,6 +446,31 @@ const translations: Translations = {
       back: "Go back",
       copied: "Copied to clipboard!",
       note: "We don't process payments online. Booking is confirmed directly with you."
+    },
+    admin: {
+      editExperience: "Edit Experience",
+      visibleOnSite: "Visible on site",
+      visibleOnSiteDesc: "When disabled, visitors won't see it",
+      titleEn: "Title in English",
+      titleEs: "Title in Spanish",
+      descEn: "Description in English",
+      descEs: "Description in Spanish",
+      includesEn: "Includes (EN - one line per item)",
+      includesEs: "Includes (ES - one line per item)",
+      imageUrl: "Image URL",
+      imageUnavailable: "Image unavailable",
+      advancedFields: "Advanced fields",
+      sortOrder: "Display order (0-999)",
+      sortOrderHint: "Lower = appears first",
+      tagType: "Tag type",
+      categories: "Categories",
+      slug: "Slug (URL-friendly)",
+      slugHint: "Lowercase letters, numbers and hyphens only",
+      cancel: "Cancel",
+      save: "Save",
+      saving: "Saving...",
+      validationFailed: "Validation error",
+      success: "Successfully saved"
     }
   }
 };
