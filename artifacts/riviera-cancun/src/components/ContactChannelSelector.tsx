@@ -401,11 +401,13 @@ export function ContactChannelSelector({
   // ─── Lead recording ───────────────────────────────────────────────────────
   function tryRecordLead(channel: 'whatsapp' | 'email' | 'facebook') {
     createLeadMutation.mutateAsync({
-      experienceId, experienceSlug, experienceTitle: experienceName,
-      channel, lang: lang as 'en' | 'es',
-      tentativeDate: startDate || undefined,
-      people: totalTravelers || undefined,
-      source: 'experience-detail',
+      data: {
+        experienceId, experienceSlug, experienceTitle: experienceName,
+        channel, lang: lang as 'en' | 'es',
+        tentativeDate: startDate || undefined,
+        people: totalTravelers || undefined,
+        source: 'experience-detail',
+      },
     }).catch(() => {});
   }
 

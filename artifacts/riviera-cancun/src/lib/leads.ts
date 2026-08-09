@@ -1,3 +1,5 @@
+import { CONTACT_CHANNELS as CONTACT_CONFIG } from '@/lib/contact';
+
 export interface Lead {
   id: string;
   experienceId: string;

@@ -20,8 +20,8 @@ export function Footer() {
             <div className="flex items-center gap-3 mb-4">
               <Logo size={38} color="#C9A84C" />
               <div className="flex flex-col">
-                <span className="font-display font-bold text-xl leading-none tracking-[0.15em] text-white">AUSTRAL</span>
-                <span className="text-[10px] uppercase tracking-widest text-brand-gold">Cancún Premium</span>
+                <span className="font-display font-bold text-xl leading-none tracking-[0.15em] text-white">ARCANOVA</span>
+                <span className="text-[10px] uppercase tracking-widest text-brand-gold">Premium Travel</span>
               </div>
             </div>
             <p className="text-white/60 text-sm leading-relaxed mb-4">

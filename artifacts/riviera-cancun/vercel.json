@@ -1,5 +1,5 @@
 {
-  "buildCommand": "cd ../.. && pnpm --filter @workspace/riviera-cancun run build",
+  "buildCommand": "cd ../.. && pnpm --filter @workspace/arcanova run build",
   "outputDirectory": "dist/public",
   "installCommand": "cd ../.. && pnpm install",
   "rewrites": [

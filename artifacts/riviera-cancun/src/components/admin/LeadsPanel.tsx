@@ -6,6 +6,9 @@ import { formatDistanceToNow } from 'date-fns';
 import { es, enUS } from 'date-fns/locale';
 import { MessageSquare, User, Calendar, X } from 'lucide-react';
 
+type LeadStatus = Lead['status'];
+const LEAD_STATUSES: LeadStatus[] = ['new', 'contacted', 'closed', 'discarded'];
+
 export function LeadsPanel() {
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -71,7 +74,7 @@ export function LeadsPanel() {
           Todos ({leads.length})
         </button>
 
-        {['new', 'contacted', 'closed', 'discarded'].map(status => {
+        {LEAD_STATUSES.map(status => {
           const count = leads.filter(l => l.status === status).length;
           return (
             <button
@@ -255,7 +258,7 @@ function LeadDetailModal({ lead, onClose }: { lead: Lead; onClose: () => void })
             </label>
             <select
               value={newStatus}
-              onChange={(e) => setNewStatus(e.target.value)}
+              onChange={(e) => setNewStatus(e.target.value as LeadStatus)}
               className="w-full px-3 py-2 border border-brand-navy/15 rounded-lg text-sm focus:outline-none focus:border-brand-gold"
             >
               <option value="new">Nuevo</option>

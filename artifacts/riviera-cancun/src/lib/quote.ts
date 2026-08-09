@@ -11,18 +11,18 @@ export type ChargeMode =
 
 export type ServiceBookingRules = {
   chargeMode: ChargeMode;
-  minTravelers?: number;
-  maxTravelers?: number;
-  includedTravelers?: number;
-  chargeFullIncludedGroup?: boolean;
+  minTravelers?: number | null;
+  maxTravelers?: number | null;
+  includedTravelers?: number | null;
+  chargeFullIncludedGroup?: boolean | null;
 };
 
 export type ServicePricing = {
-  priceAdult?: number;
-  priceChild?: number;
-  priceSenior?: number;
-  priceGroup?: number;
-  priceDay?: number;
+  priceAdult?: number | null;
+  priceChild?: number | null;
+  priceSenior?: number | null;
+  priceGroup?: number | null;
+  priceDay?: number | null;
 };
 
 // ─── Cart types ───────────────────────────────────────────────────────────────
@@ -429,8 +429,8 @@ export function buildCartWhatsAppUrl(cart: QuoteCart, lang: 'es' | 'en'): string
 
 export function buildCartEmailSubject(lang: 'es' | 'en'): string {
   return lang === 'es'
-    ? 'Cotizacion de servicios - AUSTRAL Cancun Premium'
-    : 'Service Quote - AUSTRAL Cancun Premium';
+    ? 'Cotizacion de servicios - Arcanova'
+    : 'Service Quote - Arcanova';
 }
 
 export function buildCartEmailUrl(cart: QuoteCart, lang: 'es' | 'en'): string {

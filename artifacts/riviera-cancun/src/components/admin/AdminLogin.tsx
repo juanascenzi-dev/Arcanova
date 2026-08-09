@@ -42,7 +42,7 @@ export function AdminLogin() {
 
         <div className="flex flex-col items-center mb-8">
           <ShipWheelIcon size={48} color="#C9A84C" />
-          <h1 className="text-2xl font-display font-bold text-white mt-4 tracking-wide">AUSTRAL</h1>
+          <h1 className="text-2xl font-display font-bold text-white mt-4 tracking-wide">ARCANOVA</h1>
           <p className="text-xs text-brand-gold uppercase tracking-widest mt-1">Admin Panel</p>
         </div>
 

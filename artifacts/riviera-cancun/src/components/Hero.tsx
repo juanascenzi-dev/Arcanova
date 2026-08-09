@@ -80,7 +80,7 @@ export function Hero() {
           transition={{ duration: 0.8, delay: 0.2 }}
         >
           <span className="inline-block py-1 px-3 rounded-full bg-white/10 border border-brand-gold/30 text-brand-gold text-xs font-bold tracking-widest uppercase mb-6 backdrop-blur-sm">
-            AUSTRAL · Cancún Premium
+            ARCANOVA · Premium Travel
           </span>
         </motion.div>
 

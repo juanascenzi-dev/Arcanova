@@ -199,6 +199,31 @@ type Translations = {
       contactNote: string;
       noItemsWarning: string;
     };
+    admin: {
+      editExperience: string;
+      visibleOnSite: string;
+      visibleOnSiteDesc: string;
+      titleEn: string;
+      titleEs: string;
+      descEn: string;
+      descEs: string;
+      includesEn: string;
+      includesEs: string;
+      imageUrl: string;
+      imageUnavailable: string;
+      advancedFields: string;
+      sortOrder: string;
+      sortOrderHint: string;
+      tagType: string;
+      categories: string;
+      slug: string;
+      slugHint: string;
+      cancel: string;
+      save: string;
+      saving: string;
+      validationFailed: string;
+      success: string;
+    };
   }
 };
 
@@ -215,7 +240,7 @@ const translations: Translations = {
       titleStart: "Tu aventura ",
       titleEmphasis: "premium",
       titleEnd: " comienza acá",
-      subtitle: "Descubrí la Riviera Maya con exclusividad, confort y experiencias diseñadas a tu medida.",
+      subtitle: "Descubrí experiencias premium con planificación personalizada y soporte directo.",
       ctaPrimary: "Explorar Experiencias",
       ctaSecondary: "Armá Tu Viaje",
       stats: {
@@ -228,7 +253,7 @@ const translations: Translations = {
     about: {
       headingStart: "No vendemos excursiones. Creamos ",
       headingEmphasis: "experiencias.",
-      years: "+10 años en Riviera Maya",
+      years: "+10 años creando experiencias premium",
       description: "Nos especializamos en brindar un servicio de primer nivel para que tu única preocupación sea disfrutar. Entendemos que tu tiempo es valioso, por eso cuidamos cada detalle.",
       check1: "Viajes 100% personalizados",
       check2: "Soporte bilingüe 24/7",
@@ -364,11 +389,11 @@ const translations: Translations = {
       success: "¡Gracias! Hemos recibido tu consulta. Nos contactaremos pronto."
     },
     footer: {
-      tagline: "Del sur al paraíso — tu aventura premium en la Riviera Maya.",
+      tagline: "Experiencias premium, diseñadas de punta a punta.",
       experiences: "Experiencias",
       contact: "Contacto",
       social: "Redes Sociales",
-      rights: "AUSTRAL Cancún Premium. Todos los derechos reservados.",
+      rights: "Arcanova. Todos los derechos reservados.",
       passion: "Hecho con pasión desde Argentina 🇦🇷"
     },
     inquiry: {
@@ -458,7 +483,7 @@ const translations: Translations = {
       titleStart: "Your ",
       titleEmphasis: "premium",
       titleEnd: " adventure starts here",
-      subtitle: "Discover the Riviera Maya with exclusivity, comfort, and experiences tailored to you.",
+      subtitle: "Discover premium experiences with personalized planning and direct support.",
       ctaPrimary: "Explore Experiences",
       ctaSecondary: "Plan Your Trip",
       stats: {
@@ -471,7 +496,7 @@ const translations: Translations = {
     about: {
       headingStart: "We don't sell tours. We create ",
       headingEmphasis: "experiences.",
-      years: "10+ years in Riviera Maya",
+      years: "10+ years creating premium experiences",
       description: "We specialize in providing top-tier service so your only worry is enjoying yourself. We understand your time is valuable, which is why we take care of every detail.",
       check1: "100% personalized trips",
       check2: "24/7 bilingual support",
@@ -607,11 +632,11 @@ const translations: Translations = {
       success: "Thank you! We've received your inquiry and will contact you soon."
     },
     footer: {
-      tagline: "From the south to paradise — your premium adventure in the Riviera Maya.",
+      tagline: "Premium experiences, curated end to end.",
       experiences: "Experiences",
       contact: "Contact",
       social: "Social Media",
-      rights: "AUSTRAL Cancún Premium. All rights reserved.",
+      rights: "Arcanova. All rights reserved.",
       passion: "Made with passion from Argentina 🇦🇷"
     },
     inquiry: {

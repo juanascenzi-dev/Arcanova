@@ -20,7 +20,13 @@ router.get("/experiences", async (_req, res) => {
 });
 
 router.patch("/experiences/:id", requireAdmin, async (req, res) => {
-  const { id } = req.params;
+  const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
+
+  if (!id) {
+    res.status(400).json({ error: "Experience id is required." });
+    return;
+  }
+
   const parsed = updateExperienceSchema.safeParse(req.body);
 
   if (!parsed.success) {

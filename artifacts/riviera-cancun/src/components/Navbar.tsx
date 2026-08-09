@@ -49,8 +49,8 @@ export function Navbar() {
         >
           <Logo size={36} color="#C9A84C" className="group-hover:rotate-45 transition-transform duration-700" />
           <div className="flex flex-col">
-            <span className="font-display font-bold text-xl leading-none tracking-[0.15em] text-white">AUSTRAL</span>
-            <span className="text-[10px] uppercase tracking-widest text-brand-gold">Cancún Premium</span>
+            <span className="font-display font-bold text-xl leading-none tracking-[0.15em] text-white">ARCANOVA</span>
+            <span className="text-[10px] uppercase tracking-widest text-brand-gold">Premium Travel</span>
           </div>
         </div>
 
